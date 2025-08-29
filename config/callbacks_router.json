@@ -1,0 +1,179 @@
+{
+  "patterns": [
+    {
+      "pattern": "saf:open",
+      "handler": "ui.open_submenu",
+      "args": {
+        "submenu": "safety"
+      }
+    },
+    {
+      "pattern": "mkt:open",
+      "handler": "ui.open_submenu",
+      "args": {
+        "submenu": "market"
+      }
+    },
+    {
+      "pattern": "mem:open",
+      "handler": "ui.open_submenu",
+      "args": {
+        "submenu": "meme"
+      }
+    },
+    {
+      "pattern": "rwd:open",
+      "handler": "ui.open_submenu",
+      "args": {
+        "submenu": "rewards"
+      }
+    },
+    {
+      "pattern": "mktg:open",
+      "handler": "ui.open_submenu",
+      "args": {
+        "submenu": "marketing"
+      }
+    },
+    {
+      "pattern": "saf:scan_prompt",
+      "handler": "safety.prompt_scan"
+    },
+    {
+      "pattern": "saf:hp_prompt",
+      "handler": "safety.prompt_honeypot"
+    },
+    {
+      "pattern": "saf:scan:ca=",
+      "handler": "safety.scan_contract"
+    },
+    {
+      "pattern": "saf:hp:ca=",
+      "handler": "safety.honeypot"
+    },
+    {
+      "pattern": "saf:report",
+      "handler": "safety.report_item"
+    },
+    {
+      "pattern": "mkt:pair_prompt",
+      "handler": "market.prompt_pair"
+    },
+    {
+      "pattern": "mkt:alert_new",
+      "handler": "market.prompt_alert"
+    },
+    {
+      "pattern": "mkt:alert:",
+      "handler": "market.create_alert"
+    },
+    {
+      "pattern": "mkt:whale_cfg",
+      "handler": "market.prompt_whales"
+    },
+    {
+      "pattern": "mkt:whale_sub:",
+      "handler": "market.toggle_whales"
+    },
+    {
+      "pattern": "mkt:gas",
+      "handler": "market.get_gas"
+    },
+    {
+      "pattern": "mem:gen_prompt",
+      "handler": "meme.prompt_generate"
+    },
+    {
+      "pattern": "mem:gen:q=",
+      "handler": "meme.generate"
+    },
+    {
+      "pattern": "mem:sticker:start",
+      "handler": "meme.start_stickerpack"
+    },
+    {
+      "pattern": "mem:voice_prompt",
+      "handler": "meme.prompt_voice"
+    },
+    {
+      "pattern": "mem:voice:",
+      "handler": "meme.voice"
+    },
+    {
+      "pattern": "mem:hype",
+      "handler": "meme.daily_hype"
+    },
+    {
+      "pattern": "rwd:tip:start",
+      "handler": "rewards.prompt_tip"
+    },
+    {
+      "pattern": "rwd:rain:start",
+      "handler": "rewards.prompt_rain"
+    },
+    {
+      "pattern": "rwd:air:start",
+      "handler": "rewards.airdrop"
+    },
+    {
+      "pattern": "rwd:trivia:start",
+      "handler": "rewards.trivia"
+    },
+    {
+      "pattern": "rwd:games",
+      "handler": "rewards.games_menu"
+    },
+    {
+      "pattern": "mktg:raid:open",
+      "handler": "mktg.open_raid"
+    },
+    {
+      "pattern": "mktg:ref:get",
+      "handler": "mktg.get_ref"
+    },
+    {
+      "pattern": "mktg:cd:open",
+      "handler": "mktg.countdowns"
+    },
+    {
+      "pattern": "acc:open",
+      "handler": "account.open"
+    },
+    {
+      "pattern": "pay:upgrade",
+      "handler": "billing.upgrade"
+    },
+    {
+      "pattern": "adm:setup",
+      "handler": "admin.setup"
+    },
+    {
+      "pattern": "adm:safety",
+      "handler": "admin.open_section"
+    },
+    {
+      "pattern": "adm:market",
+      "handler": "admin.open_section"
+    },
+    {
+      "pattern": "adm:meme",
+      "handler": "admin.open_section"
+    },
+    {
+      "pattern": "adm:rewards",
+      "handler": "admin.open_section"
+    },
+    {
+      "pattern": "adm:raid",
+      "handler": "admin.open_section"
+    },
+    {
+      "pattern": "adm:pay",
+      "handler": "admin.open_section"
+    },
+    {
+      "pattern": "adm:logs",
+      "handler": "admin.logs"
+    }
+  ]
+}

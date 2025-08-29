@@ -1,0 +1,235 @@
+{
+  "member_menu": {
+    "title": "Superbot \u2014 Member Menu",
+    "buttons": [
+      [
+        {
+          "text": "Safety",
+          "cb": "saf:open"
+        },
+        {
+          "text": "Price & Alpha",
+          "cb": "mkt:open"
+        }
+      ],
+      [
+        {
+          "text": "Meme & Stickers",
+          "cb": "mem:open"
+        }
+      ],
+      [
+        {
+          "text": "Tips \u2022 Airdrops \u2022 Games",
+          "cb": "rwd:open"
+        }
+      ],
+      [
+        {
+          "text": "Marketing & Raids",
+          "cb": "mktg:open"
+        }
+      ],
+      [
+        {
+          "text": "Account",
+          "cb": "acc:open"
+        },
+        {
+          "text": "Upgrade",
+          "cb": "pay:upgrade"
+        }
+      ]
+    ]
+  },
+  "admin_panel": {
+    "title": "Superbot \u2014 Admin Panel",
+    "buttons": [
+      [
+        {
+          "text": "Quick Setup",
+          "cb": "adm:setup"
+        }
+      ],
+      [
+        {
+          "text": "Safety Rules",
+          "cb": "adm:safety"
+        }
+      ],
+      [
+        {
+          "text": "Price/Alerts",
+          "cb": "adm:market"
+        }
+      ],
+      [
+        {
+          "text": "Meme & Stickers",
+          "cb": "adm:meme"
+        }
+      ],
+      [
+        {
+          "text": "Rewards & Games",
+          "cb": "adm:rewards"
+        }
+      ],
+      [
+        {
+          "text": "Raids & Referrals",
+          "cb": "adm:raid"
+        }
+      ],
+      [
+        {
+          "text": "Payments & Plans",
+          "cb": "adm:pay"
+        }
+      ],
+      [
+        {
+          "text": "Logs & Permissions",
+          "cb": "adm:logs"
+        }
+      ]
+    ]
+  },
+  "submenus": {
+    "safety": {
+      "title": "Safety",
+      "buttons": [
+        [
+          {
+            "text": "Scan Contract",
+            "cb": "saf:scan_prompt"
+          }
+        ],
+        [
+          {
+            "text": "Honeypot Check",
+            "cb": "saf:hp_prompt"
+          }
+        ],
+        [
+          {
+            "text": "Report Scam",
+            "cb": "saf:report"
+          }
+        ]
+      ]
+    },
+    "market": {
+      "title": "Price & Alpha",
+      "buttons": [
+        [
+          {
+            "text": "Price/Chart",
+            "cb": "mkt:pair_prompt"
+          }
+        ],
+        [
+          {
+            "text": "Set Price Alert",
+            "cb": "mkt:alert_new"
+          }
+        ],
+        [
+          {
+            "text": "Whale Alerts",
+            "cb": "mkt:whale_cfg"
+          }
+        ],
+        [
+          {
+            "text": "Gas Now",
+            "cb": "mkt:gas"
+          }
+        ]
+      ]
+    },
+    "meme": {
+      "title": "Meme & Stickers",
+      "buttons": [
+        [
+          {
+            "text": "Make Meme",
+            "cb": "mem:gen_prompt"
+          }
+        ],
+        [
+          {
+            "text": "Build Sticker Pack",
+            "cb": "mem:sticker:start"
+          }
+        ],
+        [
+          {
+            "text": "Voice Meme",
+            "cb": "mem:voice_prompt"
+          }
+        ],
+        [
+          {
+            "text": "Daily Hype Poster",
+            "cb": "mem:hype"
+          }
+        ]
+      ]
+    },
+    "rewards": {
+      "title": "Tips \u2022 Airdrops \u2022 Games",
+      "buttons": [
+        [
+          {
+            "text": "Tip Member",
+            "cb": "rwd:tip:start"
+          },
+          {
+            "text": "Rain",
+            "cb": "rwd:rain:start"
+          }
+        ],
+        [
+          {
+            "text": "Airdrop",
+            "cb": "rwd:air:start"
+          },
+          {
+            "text": "Trivia",
+            "cb": "rwd:trivia:start"
+          }
+        ],
+        [
+          {
+            "text": "Mini Games",
+            "cb": "rwd:games"
+          }
+        ]
+      ]
+    },
+    "marketing": {
+      "title": "Marketing & Raids",
+      "buttons": [
+        [
+          {
+            "text": "Join Raid",
+            "cb": "mktg:raid:open"
+          }
+        ],
+        [
+          {
+            "text": "My Referral Link",
+            "cb": "mktg:ref:get"
+          }
+        ],
+        [
+          {
+            "text": "Countdowns",
+            "cb": "mktg:cd:open"
+          }
+        ]
+      ]
+    }
+  }
+}
