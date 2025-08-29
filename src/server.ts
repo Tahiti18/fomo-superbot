@@ -1,6 +1,7 @@
 // src/server.ts
 import express from "express";
 import { CFG } from "./config.js";
+import { cryptoWebhook } from "./handlers/cryptoWebhook.js"; // <— NEW
 
 const app = express();
 app.use(express.json());
@@ -32,6 +33,9 @@ app.get("/crypto/test", (_req, res) => {
   console.log("✅ Simulated CryptoPay webhook:", fakeInvoice);
   return res.json(fakeInvoice);
 });
+
+// --- Real CryptoPay webhook ---
+app.post("/crypto/webhook", cryptoWebhook);
 
 // Root
 app.get("/", (_req, res) => res.send("FOMO Superbot API"));
