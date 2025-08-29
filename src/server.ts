@@ -1,7 +1,7 @@
 // src/server.ts
 import express from "express";
 import { CFG } from "./config.js";
-import { cryptoWebhook } from "./handlers/cryptoWebhook.js"; // <— NEW
+import { cryptoWebhook } from "./handlers/cryptoWebhook";
 
 const app = express();
 app.use(express.json());
