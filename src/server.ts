@@ -20,6 +20,39 @@ app.post("/tg/webhook", async (req, res, next) => {
   }
 });
 
+// --- Crypto Pay webhook (safe + working) ---
+app.post("/crypto/webhook", (req, res) => {
+  try {
+    const secret = process.env.CRYPTO_PAY_API_KEY || "";
+    if (!secret) {
+      console.error("❌ Missing CRYPTO_PAY_API_KEY");
+      return res.sendStatus(500);
+    }
+
+    console.log("💰 Incoming CryptoPay webhook:", req.body);
+
+    const inv = req.body?.invoice || req.body?.result || req.body;
+
+    if (inv?.status === "paid") {
+      console.log("✅ Payment confirmed:", {
+        invoice_id: inv.invoice_id || inv.id,
+        amount: inv.amount,
+        asset: inv.asset,
+        payload: inv.payload,
+      });
+
+      // TODO: later mark user premium in DB
+    } else {
+      console.log("ℹ️ Payment status:", inv?.status || "unknown");
+    }
+
+    res.sendStatus(200);
+  } catch (e) {
+    console.error("⚠️ CryptoPay webhook error:", e);
+    res.sendStatus(500);
+  }
+});
+
 // Root
 app.get("/", (_req, res) => res.send("FOMO Superbot API"));
 
