@@ -1,6 +1,6 @@
 // src/handlers/billing.ts
 import type { Context } from "grammy";
-import { createInvoice } from "../payments/cryptoPay.js";
+import { createInvoice } from "../payments/cryptoPay";
 import { InlineKeyboard } from "grammy";
 
 type Plan = "starter" | "pro" | "lifetime";
