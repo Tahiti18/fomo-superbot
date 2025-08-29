@@ -3,12 +3,12 @@ import express from "express";
 import { CFG } from "./config.js";
 
 const app = express();
+app.use(express.json());
 
-// Healthcheck (for Railway)
+// Healthcheck
 app.get("/health", (_req, res) => res.status(200).send("OK"));
 
-// Telegram webhook (defer-load bot to avoid startup crashes)
-app.use(express.json());
+// Telegram webhook
 app.post("/tg/webhook", async (req, res, next) => {
   try {
     const { webhook } = await import("./bot.js");
@@ -20,37 +20,17 @@ app.post("/tg/webhook", async (req, res, next) => {
   }
 });
 
-// --- Crypto Pay webhook (safe + working) ---
-app.post("/crypto/webhook", (req, res) => {
-  try {
-    const secret = process.env.CRYPTO_PAY_API_KEY || "";
-    if (!secret) {
-      console.error("❌ Missing CRYPTO_PAY_API_KEY");
-      return res.sendStatus(500);
-    }
-
-    console.log("💰 Incoming CryptoPay webhook:", req.body);
-
-    const inv = req.body?.invoice || req.body?.result || req.body;
-
-    if (inv?.status === "paid") {
-      console.log("✅ Payment confirmed:", {
-        invoice_id: inv.invoice_id || inv.id,
-        amount: inv.amount,
-        asset: inv.asset,
-        payload: inv.payload,
-      });
-
-      // TODO: later mark user premium in DB
-    } else {
-      console.log("ℹ️ Payment status:", inv?.status || "unknown");
-    }
-
-    res.sendStatus(200);
-  } catch (e) {
-    console.error("⚠️ CryptoPay webhook error:", e);
-    res.sendStatus(500);
-  }
+// --- Simulated CryptoPay test route ---
+app.get("/crypto/test", (_req, res) => {
+  const fakeInvoice = {
+    invoice_id: "test123",
+    amount: "10.00",
+    asset: "USDT",
+    status: "paid",
+    payload: "demo-user-1"
+  };
+  console.log("✅ Simulated CryptoPay webhook:", fakeInvoice);
+  return res.json(fakeInvoice);
 });
 
 // Root
