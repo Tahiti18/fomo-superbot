@@ -1,10 +1,10 @@
 // src/payments/cryptoPay.ts
 export type CreateInvoiceParams = {
-  amount: string;                  // e.g. "29"
+  amount: string; // e.g. "29"
   asset?: "USDT" | "TON" | "BTC" | "ETH" | "BNB" | "TRX" | "LTC" | "USDC";
-  description?: string;            // shown on invoice
-  payload?: string;                // your order id / user id / chat id
-  expires_in?: number;             // seconds (e.g. 900 = 15min)
+  description?: string; // shown on invoice
+  payload?: string; // your order id / user id / chat id
+  expires_in?: number; // seconds (e.g. 900 = 15min)
 };
 
 export async function createInvoice(p: CreateInvoiceParams) {
