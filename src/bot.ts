@@ -7,6 +7,13 @@ import { loadCallbackRouter, matchPattern } from './router.js';
 export const bot = new Bot(CFG.BOT_TOKEN);
 
 // === Commands ===
+bot.command('start', async (ctx) => {
+  await ctx.reply(
+    'Welcome to FOMO Superbot.\n\nUse /menu to open the main menu.\nUse /buy starter USDT to upgrade.'
+  );
+  return H.ui.open_member_menu(ctx);
+});
+
 bot.command('menu', H.ui.open_member_menu);
 bot.command('admin', H.admin.open_section);
 bot.command('help', async (ctx) => ctx.reply('Use /menu to open the FOMO Superbot menu.'));
@@ -28,7 +35,7 @@ bot.command('meme', async (ctx) => {
   await ctx.reply(`Meme: ${p} (stub)`);
 });
 
-// 💳 NEW: Payments
+// 💳 Payments
 bot.command('buy', H.billing.upgrade); // e.g. /buy pro USDT
 
 bot.command('tip', async (ctx) => ctx.reply('Tip (stub)'));
