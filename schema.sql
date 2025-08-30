@@ -1,33 +1,11 @@
--- Auto-created tables
-CREATE TABLE IF NOT EXISTS users (
+-- schema.sql
+CREATE TABLE IF NOT EXISTS subscriptions (
   id SERIAL PRIMARY KEY,
-  tg_id BIGINT UNIQUE NOT NULL,
-  username TEXT,
-  tier TEXT DEFAULT 'None',
-  expires_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW()
+  tg_user_id BIGINT NOT NULL,
+  plan TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS payments (
-  id SERIAL PRIMARY KEY,
-  user_id BIGINT REFERENCES users(tg_id),
-  plan TEXT,
-  amount NUMERIC,
-  tx_hash TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS memes (
-  id SERIAL PRIMARY KEY,
-  user_id BIGINT REFERENCES users(tg_id),
-  prompt TEXT,
-  url TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS raids (
-  id SERIAL PRIMARY KEY,
-  user_id BIGINT REFERENCES users(tg_id),
-  target TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_tg_user_id ON subscriptions(tg_user_id);

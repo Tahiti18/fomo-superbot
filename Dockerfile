@@ -1,12 +1,15 @@
+# Dockerfile
 FROM node:20-alpine
+
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json* ./
+RUN npm install --production=false
 
-COPY . .
+COPY tsconfig.json ./
+COPY src ./src
 
 RUN npm run build
 
-EXPOSE 8080
-CMD ["node","dist/server.js"]
+ENV NODE_ENV=production
+CMD ["node", "dist/server.js"]
