@@ -1,40 +1,36 @@
-import { Bot, webhookCallback, InlineKeyboard } from "grammy";
-import dotenv from "dotenv";
-dotenv.config();
+import { Bot, webhookCallback } from "grammy";
+import { CFG } from "./config.js";
+import * as H from "./handlers/index.js";
 
-export const bot = new Bot(process.env.BOT_TOKEN!);
+export const bot = new Bot(CFG.BOT_TOKEN);
 
-// Simple start/menu
+// === Commands ===
 bot.command("start", async (ctx) => {
-  const kb = new InlineKeyboard()
-    .text("Safety", "ui:safety").row()
-    .text("Price & Alpha", "ui:market").row()
-    .text("Account", "ui:account");
-  await ctx.reply("Welcome to FOMO Superbot. Use /menu to open the menu.", { reply_markup: kb });
-});
-bot.command("menu", (ctx) => ctx.reply("Open menu with the buttons above."));
-
-// Minimal callbacks (safe defaults)
-bot.on("callback_query:data", async (ctx) => {
-  const d = ctx.callbackQuery!.data;
-  if (d === "ui:account") {
-    const kb = new InlineKeyboard().text("Back", "ui:back");
-    await ctx.editMessageText("👤 Account (stub)", { reply_markup: kb });
-  } else if (d === "ui:safety") {
-    const kb = new InlineKeyboard().text("Back", "ui:back");
-    await ctx.editMessageText("🛡️ Safety tools (stub)", { reply_markup: kb });
-  } else if (d === "ui:market") {
-    const kb = new InlineKeyboard().text("Back", "ui:back");
-    await ctx.editMessageText("📈 Market tools (stub)", { reply_markup: kb });
-  } else if (d === "ui:back") {
-    const kb = new InlineKeyboard()
-      .text("Safety", "ui:safety").row()
-      .text("Price & Alpha", "ui:market").row()
-      .text("Account", "ui:account");
-    await ctx.editMessageText("Welcome to FOMO Superbot. Use /menu to open the menu.", { reply_markup: kb });
-  } else {
-    await ctx.answerCallbackQuery({ text: "Unknown", show_alert: false });
-  }
+  await ctx.reply(
+    "Welcome to FOMO Superbot.\n\nUse /menu to open the main menu.\nUse /buy starter USDT to upgrade."
+  );
+  return H.ui.open_member_menu(ctx);
 });
 
-export const webhook = webhookCallback(bot, "express", { secretToken: process.env.BOT_SECRET! });
+bot.command("menu", H.ui.open_member_menu);
+bot.command("help", async (ctx) => ctx.reply("Use /menu to open the FOMO Superbot menu."));
+
+// Safety quick commands (stubs)
+bot.command("scan", async (ctx) => {
+  const ca = (ctx.match as string || "").trim();
+  if (!ca) return ctx.reply("Usage: /scan <contract>");
+  await ctx.reply(`Scanning: ${ca}`);
+});
+bot.command("honeypot", async (ctx) => {
+  const ca = (ctx.match as string || "").trim();
+  if (!ca) return ctx.reply("Usage: /honeypot <contract>");
+  await ctx.reply(`Honeypot test: ${ca}`);
+});
+
+// Payments (stub)
+bot.command("buy", H.billing.upgrade);
+
+// === Callback routing === (centralized in ui.ts)
+bot.on("callback_query:data", H.ui.on_callback);
+
+export const webhook = webhookCallback(bot, "express", { secretToken: CFG.BOT_SECRET });

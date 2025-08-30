@@ -1,7 +1,9 @@
+-- Minimal schema for user subscriptions
 CREATE TABLE IF NOT EXISTS subscriptions (
   id SERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  tier TEXT NOT NULL,
-  expires_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW()
+  tg_user_id BIGINT NOT NULL UNIQUE,
+  plan TEXT NOT NULL DEFAULT 'none',
+  status TEXT NOT NULL DEFAULT 'inactive',
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

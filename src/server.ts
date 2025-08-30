@@ -1,6 +1,6 @@
 import express from "express";
-import dotenv from "dotenv";
-dotenv.config();
+import { CFG } from "./config.js";
+import { ensureSchema } from "./db.js";
 
 const app = express();
 app.use(express.json());
@@ -23,5 +23,8 @@ app.post("/tg/webhook", async (req, res, next) => {
 // Root
 app.get("/", (_req, res) => res.send("FOMO Superbot API"));
 
-const PORT = Number(process.env.PORT || 8080);
-app.listen(PORT, () => console.log(`FOMO Superbot listening on ${PORT}`));
+const PORT = Number(process.env.PORT || CFG.PORT || 8080);
+app.listen(PORT, async () => {
+  await ensureSchema().catch(err => console.error("ensureSchema error:", err));
+  console.log(`FOMO Superbot listening on ${PORT}`);
+});

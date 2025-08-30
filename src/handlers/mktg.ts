@@ -1,5 +1,8 @@
 import type { Context } from "grammy";
-
-export async function open_raid(ctx: Context) {
-  return ctx.reply("🚀 Raid menu (stub)");
+import { InlineKeyboard } from "grammy";
+export async function open_panel(ctx: Context) {
+  const kb = new InlineKeyboard()
+    .text("🔔 Raid (soon)", "mktg:raid").row()
+    .text("◀️ Back", "ui:back");
+  await ctx.reply("📣 Marketing & Raids (soon)", { reply_markup: kb });
 }
