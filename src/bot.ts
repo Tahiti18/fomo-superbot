@@ -44,7 +44,7 @@ bot.command("buy", H.billing.upgrade); // e.g. /buy pro USDT
 
 bot.command("tip", async (ctx) => ctx.reply("Tip (soon)"));
 bot.command("rain", async (ctx) => ctx.reply("Rain (soon)"));
-bot.command("raid", H.mktg?.open_raid ?? ((ctx) => ctx.reply("Raid (soon)"));
+bot.command("raid", H.mktg?.open_raid ?? ((ctx) => ctx.reply("Raid (soon)")));
 
 // === CALLBACKS ===
 // All inline-button clicks are handled centrally in ui.ts
