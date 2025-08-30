@@ -1,144 +1,85 @@
 // src/handlers/ui.ts
 import type { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
+import * as account from "./account.js";
+import * as mktg from "./mktg.js";
 
-/** Helpers */
-async function safeEdit(ctx: Context, text: string, kb: InlineKeyboard) {
-  try {
-    if (ctx.update.callback_query) {
-      await ctx.editMessageText(text, { reply_markup: kb, parse_mode: "Markdown" });
-    } else {
-      await ctx.reply(text, { reply_markup: kb, parse_mode: "Markdown" });
-    }
-  } catch {
-    await ctx.reply(text, { reply_markup: kb, parse_mode: "Markdown" });
-  }
-}
-
-/** Main menu */
 export async function open_member_menu(ctx: Context) {
   const kb = new InlineKeyboard()
-    .text("🛡️  Safety", "ui:safety")
-    .text("📈  Price & Alpha", "ui:price")
-    .row()
-    .text("🎭  Meme & Stickers", "ui:meme")
-    .text("🎁  Tips · Airdrops · Games", "ui:tips")
-    .row()
-    .text("📣  Marketing & Raids", "ui:marketing")
-    .row()
-    .text("👤  Account", "ui:account");
-
-  const msg =
-    "Welcome to FOMO Superbot.\n\n" +
-    "Use /menu to open the main menu.\nUse /buy starter USDT to upgrade.\n\n" +
-    "*Pick a section:*";
-
-  await safeEdit(ctx, msg, kb);
+    .text("🛡️ Safety", "ui:safety")
+    .text("📊 Price & Alpha", "ui:price").row()
+    .text("🎨 Memes & Stickers", "ui:meme")
+    .text("🎁 Tips & Airdrops", "ui:tips").row()
+    .text("🚀 Marketing & Raids", "ui:mktg")
+    .text("👤 Account", "ui:account").row()
+    .text("💳 Upgrade", "ui:upgrade");
+  await ctx.reply("*FOMO Superbot — Main Menu*", { parse_mode: "Markdown", reply_markup: kb });
 }
 
-/** Safety submenu */
-export async function open_safety(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("🔍 Scan Contract", "ui:scan")
-    .row()
-    .text("🍯 Honeypot Check", "ui:hp")
-    .row()
-    .text("🚨 Report Scam", "ui:report")
-    .row()
-    .text("🔙 Back", "ui:back");
-  await safeEdit(ctx, "🛡️ *Safety tools:*", kb);
+export async function back(ctx: Context) {
+  return open_member_menu(ctx);
 }
 
-/** Price & Alpha submenu (distinct from Safety) */
-export async function open_price(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("📊 Quick token chart", "ui:chart")
-    .row()
-    .text("🐳 Price/Whale alerts", "ui:alerts")
-    .row()
-    .text("🔙 Back", "ui:back");
-  await safeEdit(ctx, "📈 *Price & Alpha:*", kb);
-}
-
-/** Meme & Stickers submenu */
-export async function open_meme(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("🎨 Create token stickers", "ui:stickers")
-    .row()
-    .text("🖼️ Meme generator", "ui:meme_gen")
-    .row()
-    .text("🔙 Back", "ui:back");
-  await safeEdit(ctx, "🎭 *Memes & Stickers:*", kb);
-}
-
-/** Tips / Airdrops / Games submenu */
-export async function open_tips(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("💸 Tip a user", "ui:tip")
-    .row()
-    .text("🎁 Airdrop to chat", "ui:airdrop")
-    .row()
-    .text("🕹️ Mini-games (soon)", "ui:games")
-    .row()
-    .text("🔙 Back", "ui:back");
-  await safeEdit(ctx, "🎁 *Tips · Airdrops · Games:*", kb);
-}
-
-/** Marketing & Raids submenu */
-export async function open_marketing(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("🚀 Start a raid", "ui:raid")
-    .row()
-    .text("📣 Shill tools (soon)", "ui:shill")
-    .row()
-    .text("🔙 Back", "ui:back");
-  await safeEdit(ctx, "📣 *Marketing & Raids:*", kb);
-}
-
-/** Account submenu */
-export async function open_account(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("⭐ Subscription status", "ui:status")
-    .row()
-    .text("💳 Upgrade", "ui:upgrade")
-    .row()
-    .text("🔙 Back", "ui:back");
-  await safeEdit(ctx, "👤 *Account:*", kb);
-}
-
-/** Callback router entry points (all buttons land here) */
 export async function on_callback(ctx: Context) {
   const data = ctx.callbackQuery?.data || "";
-  switch (data) {
-    case "ui:safety":    return open_safety(ctx);
-    case "ui:price":     return open_price(ctx);
-    case "ui:meme":      return open_meme(ctx);
-    case "ui:tips":      return open_tips(ctx);
-    case "ui:marketing": return open_marketing(ctx);
-    case "ui:account":   return open_account(ctx);
-
-    case "ui:scan":      return ctx.answerCallbackQuery({ text: "Scan: send /scan <contract>" });
-    case "ui:hp":        return ctx.answerCallbackQuery({ text: "Honeypot: send /honeypot <contract>" });
-    case "ui:report":    return ctx.answerCallbackQuery({ text: "Report: coming soon" });
-
-    case "ui:chart":     return ctx.answerCallbackQuery({ text: "Chart: coming soon" });
-    case "ui:alerts":    return ctx.answerCallbackQuery({ text: "Alerts: coming soon" });
-
-    case "ui:stickers":  return ctx.answerCallbackQuery({ text: "Stickers: coming soon" });
-    case "ui:meme_gen":  return ctx.answerCallbackQuery({ text: "Meme gen: send /meme <prompt>" });
-
-    case "ui:tip":       return ctx.answerCallbackQuery({ text: "Tip: coming soon" });
-    case "ui:airdrop":   return ctx.answerCallbackQuery({ text: "Airdrop: coming soon" });
-    case "ui:games":     return ctx.answerCallbackQuery({ text: "Games: coming soon" });
-
-    case "ui:raid":      return ctx.answerCallbackQuery({ text: "Raid: use Marketing & Raids" });
-    case "ui:shill":     return ctx.answerCallbackQuery({ text: "Shill tools: coming soon" });
-
-    case "ui:status":    return ctx.answerCallbackQuery({ text: "Status: coming soon" });
-    case "ui:upgrade":   return ctx.answerCallbackQuery({ text: "Use /buy starter USDT" });
-
-    case "ui:back":      return open_member_menu(ctx);
-    default:
-      return ctx.answerCallbackQuery({ text: "Unknown action" });
+  try {
+    if (data === "ui:back") return back(ctx);
+    if (data === "ui:safety") return open_safety(ctx);
+    if (data === "ui:price") return open_price(ctx);
+    if (data === "ui:meme") return open_meme(ctx);
+    if (data === "ui:tips") return open_tips(ctx);
+    if (data === "ui:mktg") return open_mktg(ctx);
+    if (data === "ui:account") return account.open_account(ctx);
+    if (data === "ui:upgrade") return account.upgrade(ctx);
+    if (data === "noop") {
+      return ctx.answerCallbackQuery({
+        text: "Use /chart <symbol>, /holders <CA>, /alerts <symbol>, /audit <CA>",
+        show_alert: true
+      });
+    }
+    if (data === "mktg:raid") return mktg.open_raid(ctx);
+    return ctx.answerCallbackQuery({ text: "Unknown", show_alert: false });
+  } catch (e) {
+    return ctx.answerCallbackQuery({ text: "Error", show_alert: true });
   }
+}
+
+export async function open_safety(ctx: Context) {
+  const kb = new InlineKeyboard()
+    .text("🔍 Scan contract", "noop")
+    .text("🍯 Honeypot check", "noop").row()
+    .text("🧾 Audit (CA)", "noop")
+    .text("◀️ Back", "ui:back");
+  await ctx.reply("*Safety*", { parse_mode: "Markdown", reply_markup: kb });
+}
+
+export async function open_price(ctx: Context) {
+  const kb = new InlineKeyboard()
+    .text("📈 Chart", "noop")
+    .text("👥 Holders", "noop").row()
+    .text("🔔 Alerts", "noop")
+    .text("◀️ Back", "ui:back");
+  await ctx.reply("*Price & Alpha*", { parse_mode: "Markdown", reply_markup: kb });
+}
+
+export async function open_meme(ctx: Context) {
+  const kb = new InlineKeyboard()
+    .text("🎨 Generate Meme (stub)", "noop").row()
+    .text("◀️ Back", "ui:back");
+  await ctx.reply("*Memes & Stickers*", { parse_mode: "Markdown", reply_markup: kb });
+}
+
+export async function open_tips(ctx: Context) {
+  const kb = new InlineKeyboard()
+    .text("🎁 Tip (stub)", "noop")
+    .text("🌧️ Rain (stub)", "noop").row()
+    .text("◀️ Back", "ui:back");
+  await ctx.reply("*Tips & Airdrops*", { parse_mode: "Markdown", reply_markup: kb });
+}
+
+export async function open_mktg(ctx: Context) {
+  const kb = new InlineKeyboard()
+    .text("🚀 Start Raid", "mktg:raid").row()
+    .text("◀️ Back", "ui:back");
+  await ctx.reply("*Marketing & Raids*", { parse_mode: "Markdown", reply_markup: kb });
 }

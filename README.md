@@ -1,21 +1,18 @@
+# FOMO Superbot — FULL MAX
+Drop this repo into GitHub, connect Railway, set env vars, deploy.
 
-# FOMO Superbot — Railway Starter
+## Env (.env)
+BOT_TOKEN=
+BOT_SECRET=
+BOT_PUBLIC_URL=
+CRYPTO_PAY_API_KEY=
+DATABASE_URL=
+PORT=8080
+
+## Commands
+/start, /menu, /status, /buy, /chart, /holders, /alerts, /audit, /meme, /tip, /rain, /raid
 
 ## Deploy
-1) Push to GitHub.
-2) Create Railway service from the repo.
-3) Add variables:
-   - BOT_TOKEN
-   - BOT_SECRET
-   - (optional) BOT_PUBLIC_URL — add after Railway shows your public URL.
-4) First deploy will pass healthcheck because server starts even without BOT_PUBLIC_URL.
-5) When you have BOT_PUBLIC_URL, hit:
-   POST https://<your-app>.up.railway.app/tg/setwebhook
-   (or redeploy; server will auto-set the webhook on boot).
-
-## Health
-GET /health → 200 OK
-
-## Telegram
-- Add bot to your group, promote to admin.
-- Run /menu.
+1) Push to GitHub
+2) Railway auto-deploy
+3) Set Telegram webhook to {BOT_PUBLIC_URL}/tg/webhook

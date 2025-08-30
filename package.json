@@ -1,6 +1,6 @@
 {
   "name": "fomo-superbot",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,13 +12,13 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "grammy": "^1.26.1",
-    "pg": "^8.11.5"
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.12.12",
-    "@types/pg": "^8.10.2",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.6.2"
   }
 }

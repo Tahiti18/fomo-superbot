@@ -1,8 +1,7 @@
 // src/handlers/account.ts
 import type { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
-import * as ui from "./ui.js";
-import { pool } from "../db.js"; // assumes you have db.ts that exports a pg Pool
+import { pool } from "../db.js";
 
 export async function open_account(ctx: Context) {
   const kb = new InlineKeyboard()
@@ -16,44 +15,40 @@ export async function open_account(ctx: Context) {
 }
 
 export async function status(ctx: Context) {
+  const uid = ctx.from?.id;
+  if (!uid) return ctx.reply("No Telegram user id.");
+  let tier = "None";
+  let expiresTxt = "—";
+  let statusTxt = "inactive";
   try {
-    const tgUserId = String(ctx.from?.id);
-
-    const res = await pool.query(
-      "SELECT plan, expires_at, status FROM subscriptions WHERE tg_user_id = $1 ORDER BY created_at DESC LIMIT 1",
-      [tgUserId]
-    );
-
-    let txt: string;
-    if (res.rowCount === 0) {
-      txt =
-        "📊 *Subscription status*\n\n" +
-        "• Tier: _None_\n" +
-        "• Expires: _—_\n\n" +
-        "You’re not premium yet.";
-    } else {
-      const sub = res.rows[0];
-      txt =
-        "📊 *Subscription status*\n\n" +
-        `• Tier: _${sub.plan}_\n` +
-        `• Expires: _${sub.expires_at.toISOString().slice(0, 10)}_\n` +
-        `• Status: _${sub.status}_`;
+    const q = `
+      select plan, expires_at, status
+      from subscriptions
+      where tg_user_id = $1
+      order by created_at desc
+      limit 1
+    `;
+    const r = await pool.query(q, [ String(uid) ]);
+    if (r.rows?.length) {
+      const row = r.rows[0];
+      tier = (row.plan || "None").toUpperCase();
+      const ex = row.expires_at ? new Date(row.expires_at) : null;
+      if (ex && !isNaN(ex.getTime())) expiresTxt = ex.toISOString().slice(0, 10);
+      statusTxt = row.status || statusTxt;
     }
-
-    const kb = new InlineKeyboard()
-      .text("💳 Upgrade", "acct:upgrade").row()
-      .text("◀️ Back", "ui:back");
-
-    await ctx.editMessageText(txt, {
-      parse_mode: "Markdown",
-      reply_markup: kb,
-    }).catch(async () => {
+  } catch {}
+  const txt =
+    "📊 *Subscription status*\n\n" +
+    `• Tier: _${tier}_\n` +
+    `• Expires: _${expiresTxt}_\n` +
+    `• Status: _${statusTxt}_`;
+  const kb = new InlineKeyboard()
+    .text("💳 Upgrade", "acct:upgrade").row()
+    .text("◀️ Back", "ui:back");
+  await ctx.editMessageText(txt, { parse_mode: "Markdown", reply_markup: kb })
+    .catch(async () => {
       await ctx.reply(txt, { parse_mode: "Markdown", reply_markup: kb });
     });
-  } catch (err) {
-    console.error("status error:", err);
-    await ctx.reply("⚠️ Error fetching subscription status.");
-  }
 }
 
 export async function upgrade(ctx: Context) {
