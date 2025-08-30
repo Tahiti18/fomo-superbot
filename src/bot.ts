@@ -6,6 +6,20 @@ import { loadCallbackRouter, matchPattern } from './router.js';
 
 export const bot = new Bot(CFG.BOT_TOKEN);
 
+// === Telegram "/" menu commands ===
+void bot.api.setMyCommands([
+  { command: "start",   description: "Open main menu" },
+  { command: "status",  description: "Subscription status" },
+  { command: "buy",     description: "Upgrade plans" },
+  { command: "tools",   description: "Open feature hub" },
+  { command: "stickers",description: "Create token stickers" },
+  { command: "alerts",  description: "Price/whale alerts" },
+  { command: "chart",   description: "Quick token chart" },
+  { command: "holders", description: "Holder scan" },
+  { command: "audit",   description: "Basic contract checks" },
+  { command: "help",    description: "Usage help" },
+]);
+
 // === Commands ===
 bot.command('start', async (ctx) => {
   await ctx.reply(
