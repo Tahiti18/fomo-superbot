@@ -1,85 +1,109 @@
 // src/handlers/ui.ts
 import type { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
-import * as account from "./account.js";
-import * as mktg from "./mktg.js";
+import * as H from "./index.js"; // gives H.ui, H.account, H.safety, H.market, etc.
 
+// Main member menu
 export async function open_member_menu(ctx: Context) {
   const kb = new InlineKeyboard()
-    .text("🛡️ Safety", "ui:safety")
-    .text("📊 Price & Alpha", "ui:price").row()
-    .text("🎨 Memes & Stickers", "ui:meme")
-    .text("🎁 Tips & Airdrops", "ui:tips").row()
-    .text("🚀 Marketing & Raids", "ui:mktg")
-    .text("👤 Account", "ui:account").row()
-    .text("💳 Upgrade", "ui:upgrade");
-  await ctx.reply("*FOMO Superbot — Main Menu*", { parse_mode: "Markdown", reply_markup: kb });
+    .text("🛡️ Safety", "safety:menu")
+    .text("📈 Price & Alpha", "market:menu").row()
+    .text("🎭 Meme & Stickers", "meme:menu")
+    .text("🎁 Tips · Airdrops · Games", "rewards:menu").row()
+    .text("📣 Marketing & Raids", "mktg:menu").row()
+    .text("👤 Account", "acct:menu");
+
+  await ctx.reply(
+    "Welcome to FOMO Superbot.\n\nUse /menu to open the main menu.\nUse /buy starter USDT to upgrade.\n\nPick a section:",
+    { reply_markup: kb }
+  );
 }
 
-export async function back(ctx: Context) {
-  return open_member_menu(ctx);
-}
-
+// Generic callback router (under grammy)
 export async function on_callback(ctx: Context) {
   const data = ctx.callbackQuery?.data || "";
-  try {
-    if (data === "ui:back") return back(ctx);
-    if (data === "ui:safety") return open_safety(ctx);
-    if (data === "ui:price") return open_price(ctx);
-    if (data === "ui:meme") return open_meme(ctx);
-    if (data === "ui:tips") return open_tips(ctx);
-    if (data === "ui:mktg") return open_mktg(ctx);
-    if (data === "ui:account") return account.open_account(ctx);
-    if (data === "ui:upgrade") return account.upgrade(ctx);
-    if (data === "noop") {
-      return ctx.answerCallbackQuery({
-        text: "Use /chart <symbol>, /holders <CA>, /alerts <symbol>, /audit <CA>",
-        show_alert: true
-      });
-    }
-    if (data === "mktg:raid") return mktg.open_raid(ctx);
-    return ctx.answerCallbackQuery({ text: "Unknown", show_alert: false });
-  } catch (e) {
-    return ctx.answerCallbackQuery({ text: "Error", show_alert: true });
+  const [ns, action] = data.split(":");
+
+  // Basic sanity
+  if (!ns || !action) {
+    await ctx.answerCallbackQuery({ text: "Unknown", show_alert: false }).catch(() => {});
+    return;
   }
-}
 
-export async function open_safety(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("🔍 Scan contract", "noop")
-    .text("🍯 Honeypot check", "noop").row()
-    .text("🧾 Audit (CA)", "noop")
-    .text("◀️ Back", "ui:back");
-  await ctx.reply("*Safety*", { parse_mode: "Markdown", reply_markup: kb });
-}
+  // UI-local actions
+  if (ns === "ui" && action === "back") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    await open_member_menu(ctx);
+    return;
+  }
 
-export async function open_price(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("📈 Chart", "noop")
-    .text("👥 Holders", "noop").row()
-    .text("🔔 Alerts", "noop")
-    .text("◀️ Back", "ui:back");
-  await ctx.reply("*Price & Alpha*", { parse_mode: "Markdown", reply_markup: kb });
-}
+  // Menu openings for top-level buttons
+  if (ns === "acct" && action === "menu") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    const kb = new InlineKeyboard()
+      .text("📊 Subscription status", "acct:status").row()
+      .text("💳 Upgrade", "acct:upgrade").row()
+      .text("◀️ Back", "ui:back");
+    await ctx.reply("👤 *Account*", { parse_mode: "Markdown", reply_markup: kb });
+    return;
+  }
+  if (ns === "safety" && action === "menu") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    const kb = new InlineKeyboard()
+      .text("🔎 Scan Contract", "safety:scan").row()
+      .text("🍯 Honeypot Check", "safety:honeypot").row()
+      .text("🚩 Report Scam", "safety:report").row()
+      .text("◀️ Back", "ui:back");
+    await ctx.reply("🛡️ *Safety tools:*", { parse_mode: "Markdown", reply_markup: kb });
+    return;
+  }
+  if (ns === "market" && action === "menu") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    const kb = new InlineKeyboard()
+      .text("📊 Quick token chart", "market:chart").row()
+      .text("📈 Price/Whale alerts", "market:alerts").row()
+      .text("◀️ Back", "ui:back");
+    await ctx.reply("📈 *Price & Alpha:*", { parse_mode: "Markdown", reply_markup: kb });
+    return;
+  }
+  if (ns === "meme" && action === "menu") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    const kb = new InlineKeyboard()
+      .text("🖼️ Create token stickers", "meme:stickers").row()
+      .text("◀️ Back", "ui:back");
+    await ctx.reply("🎭 *Meme & Stickers:*", { parse_mode: "Markdown", reply_markup: kb });
+    return;
+  }
+  if (ns === "rewards" && action === "menu") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    const kb = new InlineKeyboard()
+      .text("💸 Tips", "rewards:tip").row()
+      .text("🌧️ Airdrops", "rewards:airdrop").row()
+      .text("🎮 Games", "rewards:games").row()
+      .text("◀️ Back", "ui:back");
+    await ctx.reply("🎁 *Tips · Airdrops · Games:*", { parse_mode: "Markdown", reply_markup: kb });
+    return;
+  }
+  if (ns === "mktg" && action === "menu") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    const kb = new InlineKeyboard()
+      .text("🚀 Open raid", "mktg:raid").row()
+      .text("◀️ Back", "ui:back");
+    await ctx.reply("📣 *Marketing & Raids:*", { parse_mode: "Markdown", reply_markup: kb });
+    return;
+  }
 
-export async function open_meme(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("🎨 Generate Meme (stub)", "noop").row()
-    .text("◀️ Back", "ui:back");
-  await ctx.reply("*Memes & Stickers*", { parse_mode: "Markdown", reply_markup: kb });
-}
+  // Generic dynamic dispatch to any handler module exported in handlers/index.ts
+  // e.g. "acct:status" -> H.account.status(ctx)
+  //      "acct:upgrade" -> H.account.upgrade(ctx), etc.
+  const mod: any = (H as any)[ns];
+  const fn = mod?.[action];
+  if (typeof fn === "function") {
+    await ctx.answerCallbackQuery().catch(() => {});
+    await fn(ctx);
+    return;
+  }
 
-export async function open_tips(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("🎁 Tip (stub)", "noop")
-    .text("🌧️ Rain (stub)", "noop").row()
-    .text("◀️ Back", "ui:back");
-  await ctx.reply("*Tips & Airdrops*", { parse_mode: "Markdown", reply_markup: kb });
-}
-
-export async function open_mktg(ctx: Context) {
-  const kb = new InlineKeyboard()
-    .text("🚀 Start Raid", "mktg:raid").row()
-    .text("◀️ Back", "ui:back");
-  await ctx.reply("*Marketing & Raids*", { parse_mode: "Markdown", reply_markup: kb });
+  // Fallback
+  await ctx.answerCallbackQuery({ text: "Unknown", show_alert: false }).catch(() => {});
 }
