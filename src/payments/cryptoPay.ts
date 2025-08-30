@@ -1,36 +1,45 @@
-// src/payments/cryptoPay.ts
-export type CreateInvoiceParams = {
-  amount: string; // e.g. "29"
-  asset?: "USDT" | "TON" | "BTC" | "ETH" | "BNB" | "TRX" | "LTC" | "USDC";
-  description?: string; // shown on invoice
-  payload?: string; // your order id / user id / chat id
-  expires_in?: number; // seconds (e.g. 900 = 15min)
-};
+// src/handlers/cryptopay.ts
+import type { Request, Response } from "express";
+import crypto from "crypto";
 
-export async function createInvoice(p: CreateInvoiceParams) {
-  const token = process.env.CRYPTO_PAY_API_KEY;
-  if (!token) throw new Error("CRYPTO_PAY_API_KEY missing");
+/**
+ * Minimal CryptoBot (Crypto Pay) webhook handler.
+ * Verifies signature and logs paid invoices.
+ */
+export function cryptopayWebhook(req: Request, res: Response) {
+  try {
+    const secret = process.env.CRYPTO_PAY_API_KEY || "";
+    if (!secret) {
+      console.error("Missing CRYPTO_PAY_API_KEY");
+      return res.status(500).end();
+    }
 
-  const body = {
-    asset: p.asset || "USDT",
-    amount: p.amount,
-    description: p.description || "FOMO Superbot Premium",
-    payload: p.payload || "",
-    expires_in: p.expires_in || 900,
-    allow_comments: false,
-    allow_anonymous: false,
-  };
+    // Compute HMAC of raw body (Railway/Express gives parsed JSON; this is fine for now)
+    const raw = JSON.stringify(req.body ?? {});
+    const expected = crypto.createHmac("sha256", secret).update(raw).digest("hex");
+    const got = String(req.header("Crypto-Pay-Api-Signature") || "").toLowerCase();
 
-  const r = await fetch("https://pay.crypt.bot/api/createInvoice", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Crypto-Pay-API-Token": token,
-    },
-    body: JSON.stringify(body),
-  });
+    if (!got || got !== expected) {
+      console.warn("CryptoPay signature mismatch");
+      return res.status(403).end();
+    }
 
-  const j = await r.json();
-  if (!j.ok) throw new Error(`CryptoPay error: ${JSON.stringify(j)}`);
-  return j.result; // contains invoice_url, invoice_id, status, etc.
+    const inv = (req.body?.invoice || req.body?.result || req.body) as any;
+    console.log("🔔 CryptoPay webhook:", inv?.status, inv?.invoice_id || inv?.id);
+
+    if (inv?.status === "paid") {
+      console.log("✅ PAID:", {
+        invoice_id: inv.invoice_id || inv.id,
+        amount: inv.amount,
+        asset: inv.asset,
+        payload: inv.payload,
+      });
+      // Next step will: mark user premium in DB using `payload`
+    }
+
+    return res.status(200).end();
+  } catch (e) {
+    console.error("CryptoPay webhook error:", e);
+    return res.status(500).end();
+  }
 }
