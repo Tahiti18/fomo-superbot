@@ -8,6 +8,7 @@ export async function open_account(ctx: Context) {
     .text("📊 Subscription status", "acct:status").row()
     .text("💳 Upgrade", "acct:upgrade").row()
     .text("◀️ Back", "ui:back");
+
   await ctx.reply("👤 *Account*", {
     parse_mode: "Markdown",
     reply_markup: kb,
@@ -15,35 +16,47 @@ export async function open_account(ctx: Context) {
 }
 
 export async function status(ctx: Context) {
-  try {
-    const tgId = ctx.from?.id;
-    if (!tgId) throw new Error("No Telegram id");
-    const q = `
-      SELECT plan, expires_at, status
-      FROM subscriptions
-      WHERE tg_user_id = $1
-      ORDER BY created_at DESC
-      LIMIT 1
-    `;
-    const { rows } = await pool.query(q, [tgId]);
-    let txt: string;
-    if (!rows.length) {
-      txt = "📊 *Subscription status*\n\n• Tier: _None_\n• Expires: _—_\n\nYou’re not premium yet.";
-    } else {
-      const r = rows[0];
-      const expires = new Date(r.expires_at).toISOString().slice(0, 10);
-      txt = `📊 *Subscription status*\n\n• Tier: *${String(r.plan).toUpperCase()}*\n• Expires: *${expires}*\n• Status: *${r.status}*`;
-    }
-    const kb = new InlineKeyboard()
-      .text("💳 Upgrade", "acct:upgrade").row()
-      .text("◀️ Back", "ui:back");
+  const kb = new InlineKeyboard()
+    .text("💳 Upgrade", "acct:upgrade").row()
+    .text("◀️ Back", "ui:back");
 
-    await ctx.editMessageText(txt, { parse_mode: "Markdown", reply_markup: kb })
-      .catch(async () => {
-        await ctx.reply(txt, { parse_mode: "Markdown", reply_markup: kb });
-      });
-  } catch (e) {
-    await ctx.reply("Status error.");
+  const tgId = ctx.from?.id ? String(ctx.from.id) : null;
+  if (!tgId) {
+    await safeReply(ctx, "Could not determine your Telegram ID.", kb);
+    return;
+  }
+
+  try {
+    const q =
+      `SELECT plan, expires_at, status
+         FROM subscriptions
+        WHERE tg_user_id = $1
+        ORDER BY id DESC
+        LIMIT 1`;
+    const { rows } = await pool.query(q, [tgId]);
+    const sub = (rows?.[0] ?? null) as
+      | { plan: string | null; expires_at: string | Date | null; status: string | null }
+      | null;
+
+    const tier = sub?.plan ? sub.plan.toUpperCase() : "None";
+    const expires =
+      sub?.expires_at
+        ? new Date(sub.expires_at as any).toISOString().replace("T", " ").replace(".000Z", " UTC")
+        : "—";
+    const stat = sub?.status ?? "inactive";
+
+    const txt =
+      "📊 *Subscription status*\n\n" +
+      `• Tier: _${tier}_\n` +
+      `• Expires: _${expires}_\n` +
+      `• Status: _${stat}_\n\n` +
+      (tier === "None"
+        ? "You’re not premium yet."
+        : "Thanks for supporting FOMO Superbot!");
+
+    await safeEditOrReply(ctx, txt, kb);
+  } catch (e: any) {
+    await safeReply(ctx, `DB error: ${e?.message || e}`, kb);
   }
 }
 
@@ -53,4 +66,18 @@ export async function upgrade(ctx: Context) {
     ctx.chat!.id,
     "Opening upgrade… use /buy starter USDT (or /buy pro USDT) to get Premium."
   );
+}
+
+/* ---------- helpers ---------- */
+
+async function safeEditOrReply(ctx: Context, text: string, kb: InlineKeyboard) {
+  await ctx
+    .editMessageText(text, { parse_mode: "Markdown", reply_markup: kb })
+    .catch(async () => {
+      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: kb });
+    });
+}
+
+async function safeReply(ctx: Context, text: string, kb: InlineKeyboard) {
+  await ctx.reply(text, { parse_mode: "Markdown", reply_markup: kb });
 }
