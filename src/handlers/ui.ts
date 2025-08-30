@@ -1,53 +1,25 @@
-// src/handlers/ui.ts
 import type { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
-import * as H from "./index.js";
 
 export async function open_member_menu(ctx: Context) {
   const kb = new InlineKeyboard()
-    .text("🛡️ Safety", "safety:menu")
-    .text("📈 Price & Alpha", "market:menu").row()
-    .text("🎭 Meme & Stickers", "meme:menu")
-    .text("🎁 Tips · Airdrops · Games", "rewards:menu").row()
-    .text("📣 Marketing & Raids", "mktg:menu").row()
-    .text("👤 Account", "acct:menu");
-
-  await ctx.reply(
-    "Welcome to FOMO Superbot.\n\nUse /menu to open the main menu.\nUse /buy starter USDT to upgrade.\n\nPick a section:",
-    { reply_markup: kb }
-  );
+    .text("🛡 Safety", "ui:safety").row()
+    .text("📈 Price & Alpha", "ui:market").row()
+    .text("🎭 Memes & Stickers", "ui:meme").row()
+    .text("🎁 Tips & Airdrops", "ui:rewards").row()
+    .text("🚀 Marketing & Raids", "ui:raids").row()
+    .text("👤 Account", "ui:account").row();
+  await ctx.reply("📍 *Main Menu*", { parse_mode: "Markdown", reply_markup: kb });
 }
 
 export async function on_callback(ctx: Context) {
-  const data = ctx.callbackQuery?.data || "";
-  const [ns, action] = data.split(":");
-
-  if (!ns || !action) {
-    await ctx.answerCallbackQuery({ text: "Unknown" }).catch(() => {});
-    return;
-  }
-
-  if (ns === "ui" && action === "back") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    await open_member_menu(ctx);
-    return;
-  }
-
-  // Open section menus
-  if (ns === "acct" && action === "menu") return H.account.open_account(ctx);
-  if (ns === "safety" && action === "menu") return H.safety.open_menu(ctx);
-  if (ns === "market" && action === "menu") return H.market.open_menu(ctx);
-  if (ns === "meme" && action === "menu") return H.meme.open_menu(ctx);
-  if (ns === "rewards" && action === "menu") return H.rewards.open_menu(ctx);
-  if (ns === "mktg" && action === "menu") return H.mktg.open_menu(ctx);
-
-  // Dynamic dispatch for ns:action
-  const mod: any = (H as any)[ns];
-  const fn = mod?.[action];
-  if (typeof fn === "function") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    await fn(ctx);
-    return;
-  }
-  await ctx.answerCallbackQuery({ text: "Unknown" }).catch(() => {});
+  const d = ctx.callbackQuery?.data;
+  await ctx.answerCallbackQuery().catch(() => {});
+  if (!d) return;
+  if (d.startsWith("ui:account")) return import("./account.js").then(m => m.open_account(ctx));
+  if (d.startsWith("ui:safety")) return ctx.reply("Safety menu (stub)");
+  if (d.startsWith("ui:market")) return ctx.reply("Market menu (stub)");
+  if (d.startsWith("ui:meme")) return ctx.reply("Meme menu (stub)");
+  if (d.startsWith("ui:rewards")) return ctx.reply("Rewards menu (stub)");
+  if (d.startsWith("ui:raids")) return ctx.reply("Raids menu (stub)");
 }
