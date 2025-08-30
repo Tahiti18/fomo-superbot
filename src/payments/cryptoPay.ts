@@ -16,7 +16,7 @@ export async function createInvoice(p: CreateInvoiceParams) {
     amount: p.amount,
     description: p.description || "FOMO Superbot Premium",
     payload: p.payload || "",
-    expires_in: p.expires_in || 900,
+    expires_in: p.expires_in ?? 900,
     allow_comments: false,
     allow_anonymous: false,
   };
@@ -32,5 +32,5 @@ export async function createInvoice(p: CreateInvoiceParams) {
 
   const j = await r.json();
   if (!j.ok) throw new Error(`CryptoPay error: ${JSON.stringify(j)}`);
-  return j.result; // invoice_url/invoice_id/status/etc
+  return j.result;
 }
