@@ -1,7 +1,7 @@
 // src/bot.ts
 import { Bot, webhookCallback } from "grammy";
 import { CFG } from "./config.js";
-import * as H from "./handlers/index.js"; // H.ui, H.billing, H.mktg, etc.
+import * as H from "./handlers/index.js"; // H.ui, H.billing, H.mktg, H.account, etc.
 
 export const bot = new Bot(CFG.BOT_TOKEN);
 
@@ -15,21 +15,26 @@ bot.command("start", async (ctx) => {
 
 bot.command("menu", H.ui.open_member_menu);
 bot.command("help", async (ctx) => ctx.reply("Use /menu to open the FOMO Superbot menu."));
-bot.command("admin", H.admin?.open_section || (ctx => ctx.reply("Admin (soon)")));
+bot.command("admin", H.admin?.open_section ?? ((ctx) => ctx.reply("Admin (soon)")));
+
+// Account
+bot.command("status", H.account.status);
 
 // Safety / Market quick commands (stubs)
 bot.command("scan", async (ctx) => {
-  const ca = (ctx.match as string || "").trim();
+  const ca = ((ctx.match as string) || "").trim();
   if (!ca) return ctx.reply("Usage: /scan <contract>");
   await ctx.reply(`Scanning: ${ca}`);
 });
+
 bot.command("honeypot", async (ctx) => {
-  const ca = (ctx.match as string || "").trim();
+  const ca = ((ctx.match as string) || "").trim();
   if (!ca) return ctx.reply("Usage: /honeypot <contract>");
   await ctx.reply(`Honeypot test: ${ca}`);
 });
+
 bot.command("meme", async (ctx) => {
-  const p = (ctx.match as string || "").trim();
+  const p = ((ctx.match as string) || "").trim();
   if (!p) return ctx.reply("Usage: /meme <prompt>");
   await ctx.reply(`Meme: ${p} (stub)`);
 });
@@ -37,9 +42,9 @@ bot.command("meme", async (ctx) => {
 // 💳 Payments
 bot.command("buy", H.billing.upgrade); // e.g. /buy pro USDT
 
-bot.command("tip", async (ctx) => ctx.reply("Tip (stub)"));
-bot.command("rain", async (ctx) => ctx.reply("Rain (stub)"));
-bot.command("raid", H.mktg?.open_raid || (ctx => ctx.reply("Raid (soon)")));
+bot.command("tip", async (ctx) => ctx.reply("Tip (soon)"));
+bot.command("rain", async (ctx) => ctx.reply("Rain (soon)"));
+bot.command("raid", H.mktg?.open_raid ?? ((ctx) => ctx.reply("Raid (soon)"));
 
 // === CALLBACKS ===
 // All inline-button clicks are handled centrally in ui.ts
