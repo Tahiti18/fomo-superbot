@@ -1,18 +1,31 @@
-// src/handlers/cryptowebhook.ts
-import { Request, Response } from "express";
+// src/server.ts
+import express from "express";
+import { CFG } from "./config.js";
+import { cryptowebhook } from "./handlers/cryptowebhook.js"; // <-- add this
 
-export const cryptowebhook = async (req: Request, res: Response) => {
+const app = express();
+app.use(express.json());
+
+// Healthcheck
+app.get("/health", (_req, res) => res.status(200).send("OK"));
+
+// Telegram webhook
+app.post("/tg/webhook", async (req, res, next) => {
   try {
-    const update = req.body;
-    console.log("📩 Incoming CryptoPay webhook:", update);
-
-    if (update.status === "paid") {
-      console.log(`✅ Invoice ${update.invoice_id} confirmed for ${update.amount} ${update.asset}`);
-    }
-
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error("❌ CryptoPay webhook error:", err);
-    return res.status(500).json({ ok: false });
+    const { webhook } = await import("./bot.js");
+    // @ts-ignore grammy express handler
+    return webhook(req, res, next);
+  } catch (e) {
+    console.error("Telegram webhook error:", e);
+    return res.status(500).end();
   }
-};
+});
+
+// CryptoPay webhook (POST only)
+app.post("/crypto/webhook", cryptowebhook); // <-- add this
+
+// Root
+app.get("/", (_req, res) => res.send("FOMO Superbot API"));
+
+const PORT = Number(process.env.PORT || CFG.PORT || 8080);
+app.listen(PORT, () => console.log(`FOMO Superbot listening on ${PORT}`));
