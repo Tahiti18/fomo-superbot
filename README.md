@@ -1,17 +1,18 @@
-# FOMO Superbot — MAX PACK v2
+# FOMO Superbot [MENU-V3]
 
-Drop-in pack: menus wired, account status reads DB (if row exists), billing creates CryptoBot invoices, market/safety stubs ready.
+## Setup
+1. Copy `.env.example` to `.env` and fill with real values.
+2. Deploy to Railway (with Postgres plugin).
+3. Run migrations:
+   ```
+   psql $DATABASE_URL -f db/schema.sql
+   ```
+4. Set Telegram webhook:
+   ```
+   https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=<BOT_PUBLIC_URL>/tg/webhook&secret_token=fomo-secret-123
+   ```
+5. In Telegram: `/start` or `/menu`.
 
-## Env (.env)
-BOT_TOKEN=
-BOT_SECRET=
-BOT_PUBLIC_URL=
-CRYPTO_PAY_API_KEY=
-DATABASE_URL=
-PORT=8080
-
-## Commands
-/start /menu /status /buy /chart /holders /alerts /audit /meme /tip /rain /raid
-
-## Webhook
-Set to {BOT_PUBLIC_URL}/tg/webhook
+## Notes
+- Subscription check reads from `subscriptions` table.
+- Logs will show [MENU-V3] if this version is active.
