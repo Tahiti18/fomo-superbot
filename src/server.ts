@@ -1,21 +1,19 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
-import { CFG } from "./config.js";
-import { ensureSchema } from "./db.js";
-
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// Healthcheck (for Railway)
-app.get("/health", (_req, res) => res.status(200).send("OK"));
+// Healthcheck for Railway
+app.get("/health", (_req: Request, res: Response) => res.status(200).send("OK"));
 
-// Telegram webhook (defer-load bot to avoid startup crashes)
-app.post("/tg/webhook", async (req, res, next) => {
+// Telegram webhook (defer-load grammy webhook handler)
+app.post("/tg/webhook", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { webhook } = await import("./bot.js");
-    // @ts-ignore grammy express handler
+    // grammy's express handler signature: (req,res) or (req,res,next)
+    // @ts-ignore
     return webhook(req, res, next);
   } catch (e) {
     console.error("Telegram webhook error:", e);
@@ -24,15 +22,7 @@ app.post("/tg/webhook", async (req, res, next) => {
 });
 
 // Root
-app.get("/", (_req, res) => res.send("FOMO Superbot API"));
+app.get("/", (_req: Request, res: Response) => res.send("FOMO Superbot API"));
 
-// Boot
-const PORT = CFG.PORT;
-app.listen(PORT, async () => {
-  try {
-    if (CFG.AUTO_MIGRATE) await ensureSchema();
-  } catch (e) {
-    console.error("DB migration error:", e);
-  }
-  console.log(`FOMO Superbot listening on ${PORT}`);
-});
+const PORT = Number(process.env.PORT || 8080);
+app.listen(PORT, () => console.log(`FOMO Superbot listening on ${PORT}`));
