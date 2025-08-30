@@ -1,7 +1,7 @@
 // src/handlers/billing.ts
 import type { Context } from "grammy";
-import { createInvoice } from "../payments/cryptoPay";
 import { InlineKeyboard } from "grammy";
+import { createInvoice } from "../payments/cryptoPay.js";
 
 type Plan = "starter" | "pro" | "lifetime";
 
@@ -17,14 +17,14 @@ function priceFor(plan: Plan) {
 }
 
 export async function upgrade(ctx: Context) {
-  // Command usage: /buy [plan] [asset]
+  // Usage: /buy [plan] [asset]
   // Examples: /buy, /buy pro, /buy pro USDT, /buy starter TON
   const raw = (ctx.match as string | undefined)?.trim() || "";
   const [p1, p2] = raw.split(/\s+/).filter(Boolean);
 
   const plan = (
     ["starter", "pro", "lifetime"].includes((p1 || "").toLowerCase())
-      ? p1!.toLowerCase()
+      ? (p1 as Plan).toLowerCase()
       : "pro"
   ) as Plan;
 
@@ -40,7 +40,6 @@ export async function upgrade(ctx: Context) {
 
   const { amount, desc } = priceFor(plan);
 
-  // Build payload so we know who/what this payment is for when webhook fires
   const payload = JSON.stringify({
     plan,
     asset,
@@ -60,8 +59,8 @@ export async function upgrade(ctx: Context) {
     });
 
     const url = (inv.pay_url || inv.invoice_url) as string;
-
     const kb = new InlineKeyboard().url("🔒 Pay Securely (CryptoBot)", url);
+
     await ctx.reply(
       `✅ Invoice created\n\nPlan: *${plan.toUpperCase()}*\nAsset: *${asset}*\nAmount: *${amount}*\n\nClick to pay and unlock Premium.`,
       { parse_mode: "Markdown", reply_markup: kb }
