@@ -1,11 +1,10 @@
 // src/payments/cryptoPay.ts
-
 export type CreateInvoiceParams = {
-  amount: string;                  // e.g. "29"
+  amount: string;
   asset?: "USDT" | "TON" | "BTC" | "ETH" | "BNB" | "TRX" | "LTC" | "USDC";
-  description?: string;            // shown on invoice
-  payload?: string;                // your order id / user id / chat id
-  expires_in?: number;             // seconds (e.g. 900 = 15min)
+  description?: string;
+  payload?: string;
+  expires_in?: number;
 };
 
 export async function createInvoice(p: CreateInvoiceParams) {
@@ -33,5 +32,5 @@ export async function createInvoice(p: CreateInvoiceParams) {
 
   const j = await r.json();
   if (!j.ok) throw new Error(`CryptoPay error: ${JSON.stringify(j)}`);
-  return j.result; // { invoice_id, invoice_url/pay_url, status, ... }
+  return j.result;
 }
