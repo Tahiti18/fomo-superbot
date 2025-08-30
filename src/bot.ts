@@ -1,23 +1,35 @@
 // src/bot.ts
 import { Bot, webhookCallback } from "grammy";
 import { CFG } from "./config.js";
-import * as H from "./handlers/index.js"; // H.ui, H.billing, H.mktg, H.account, etc.
+import * as H from "./handlers/index.js"; // H.ui, H.billing, H.mktg, H.account, H.admin
 
 export const bot = new Bot(CFG.BOT_TOKEN);
+
+// ---- Safe fallbacks for handlers that might not exist yet ----
+const openMemberMenu =
+  (H.ui && H.ui.open_member_menu) || (async (ctx: any) => ctx.reply("Menu (soon)"));
+const onCallback =
+  (H.ui && H.ui.on_callback) || (async (ctx: any) => ctx.answerCallbackQuery().catch(() => {}));
+const adminOpen =
+  (H.admin && H.admin.open_section) || (async (ctx: any) => ctx.reply("Admin (soon)"));
+const raidOpen =
+  (H.mktg && H.mktg.open_raid) || (async (ctx: any) => ctx.reply("Raid (soon)"));
+const upgradeCmd =
+  (H.billing && H.billing.upgrade) || (async (ctx: any) => ctx.reply("Payments (soon)"));
 
 // === Commands ===
 bot.command("start", async (ctx) => {
   await ctx.reply(
     "Welcome to FOMO Superbot.\n\nUse /menu to open the main menu.\nUse /buy starter USDT to upgrade."
   );
-  return H.ui.open_member_menu(ctx);
+  return openMemberMenu(ctx);
 });
 
-bot.command("menu", H.ui.open_member_menu);
-bot.command("help", async (ctx) => ctx.reply("Use /menu to open the FOMO Superbot menu."));
-bot.command("admin", H.admin?.open_section ?? ((ctx) => ctx.reply("Admin (soon)")));
+bot.command("menu", openMemberMenu);
+bot.command("help", (ctx) => ctx.reply("Use /menu to open the FOMO Superbot menu."));
+bot.command("admin", adminOpen);
 
-// Account
+// Account: wire /status to Account → status
 bot.command("status", H.account.status);
 
 // Safety / Market quick commands (stubs)
@@ -40,14 +52,14 @@ bot.command("meme", async (ctx) => {
 });
 
 // 💳 Payments
-bot.command("buy", H.billing.upgrade); // e.g. /buy pro USDT
+bot.command("buy", upgradeCmd);
 
-bot.command("tip", async (ctx) => ctx.reply("Tip (soon)"));
-bot.command("rain", async (ctx) => ctx.reply("Rain (soon)"));
-bot.command("raid", H.mktg?.open_raid ?? ((ctx) => ctx.reply("Raid (soon)")));
+bot.command("tip", (ctx) => ctx.reply("Tip (stub)"));
+bot.command("rain", (ctx) => ctx.reply("Rain (stub)"));
+bot.command("raid", raidOpen);
 
 // === CALLBACKS ===
 // All inline-button clicks are handled centrally in ui.ts
-bot.on("callback_query:data", H.ui.on_callback);
+bot.on("callback_query:data", onCallback);
 
 export const webhook = webhookCallback(bot, "express", { secretToken: CFG.BOT_SECRET });
