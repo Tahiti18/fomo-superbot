@@ -1,32 +1,18 @@
-# Multi-stage build for FOMO Superbot
-# Build stage
+# ---- Build stage ----
 FROM node:20-alpine AS build
-
 WORKDIR /app
-
-# Copy manifests first for better layer caching
 COPY package*.json ./
-# Install deps (works with or without a lockfile)
-RUN npm install --omit=dev
-
-# Copy the rest of the source
+RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
-
-# Compile TS -> JS
 RUN npm run build
 
-# Runtime stage
-FROM node:20-alpine AS runtime
-
-ENV NODE_ENV=production
+# ---- Runtime stage ----
+FROM node:20-alpine
 WORKDIR /app
-
-# Copy only what's needed to run
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
+ENV NODE_ENV=production
 COPY package*.json ./
-
-# Healthcheck is served by server.ts at GET /health
+RUN npm ci --omit=dev
+COPY --from=build /app/dist ./dist
 EXPOSE 8080
 CMD ["node", "dist/server.js"]
