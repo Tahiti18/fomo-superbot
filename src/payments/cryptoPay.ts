@@ -1,45 +1,36 @@
-// src/handlers/cryptoPay.ts
-import type { Request, Response } from "express";
-import crypto from "crypto";
+// src/payments/cryptoPay.ts
+export type CreateInvoiceParams = {
+  amount: string;
+  asset?: "USDT" | "TON" | "BTC" | "ETH" | "BNB" | "TRX" | "LTC" | "USDC";
+  description?: string;
+  payload?: string;
+  expires_in?: number;
+};
 
-/**
- * Minimal CryptoBot (Crypto Pay) webhook handler.
- * Verifies signature and logs paid invoices.
- */
-export function cryptoPayWebhook(req: Request, res: Response) {
-  try {
-    const secret = process.env.CRYPTO_PAY_API_KEY || "";
-    if (!secret) {
-      console.error("Missing CRYPTO_PAY_API_KEY");
-      return res.status(500).end();
-    }
+export async function createInvoice(p: CreateInvoiceParams) {
+  const token = process.env.CRYPTO_PAY_API_KEY;
+  if (!token) throw new Error("CRYPTO_PAY_API_KEY missing");
 
-    // Compute HMAC of raw body
-    const raw = JSON.stringify(req.body ?? {});
-    const expected = crypto.createHmac("sha256", secret).update(raw).digest("hex");
-    const got = String(req.header("Crypto-Pay-Api-Signature") || "").toLowerCase();
+  const body = {
+    asset: p.asset || "USDT",
+    amount: p.amount,
+    description: p.description || "FOMO Superbot Premium",
+    payload: p.payload || "",
+    expires_in: p.expires_in || 900,
+    allow_comments: false,
+    allow_anonymous: false,
+  };
 
-    if (!got || got !== expected) {
-      console.warn("CryptoPay signature mismatch");
-      return res.status(403).end();
-    }
+  const r = await fetch("https://pay.crypt.bot/api/createInvoice", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Crypto-Pay-API-Token": token,
+    },
+    body: JSON.stringify(body),
+  });
 
-    const inv = (req.body?.invoice || req.body?.result || req.body) as any;
-    console.log("🔔 CryptoPay webhook:", inv?.status, inv?.invoice_id || inv?.id);
-
-    if (inv?.status === "paid") {
-      console.log("✅ PAID:", {
-        invoice_id: inv.invoice_id || inv.id,
-        amount: inv.amount,
-        asset: inv.asset,
-        payload: inv.payload,
-      });
-      // TODO: mark user premium in DB using `payload`
-    }
-
-    return res.status(200).end();
-  } catch (e) {
-    console.error("CryptoPay webhook error:", e);
-    return res.status(500).end();
-  }
+  const j = await r.json();
+  if (!j.ok) throw new Error(`CryptoPay error: ${JSON.stringify(j)}`);
+  return j.result; // invoice_url/invoice_id/status/etc
 }
