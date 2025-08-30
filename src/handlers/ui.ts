@@ -1,9 +1,8 @@
 // src/handlers/ui.ts
 import type { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
-import * as H from "./index.js"; // gives H.ui, H.account, H.safety, H.market, etc.
+import * as H from "./index.js";
 
-// Main member menu
 export async function open_member_menu(ctx: Context) {
   const kb = new InlineKeyboard()
     .text("🛡️ Safety", "safety:menu")
@@ -19,83 +18,30 @@ export async function open_member_menu(ctx: Context) {
   );
 }
 
-// Generic callback router (under grammy)
 export async function on_callback(ctx: Context) {
   const data = ctx.callbackQuery?.data || "";
   const [ns, action] = data.split(":");
 
-  // Basic sanity
   if (!ns || !action) {
-    await ctx.answerCallbackQuery({ text: "Unknown", show_alert: false }).catch(() => {});
+    await ctx.answerCallbackQuery({ text: "Unknown" }).catch(() => {});
     return;
   }
 
-  // UI-local actions
   if (ns === "ui" && action === "back") {
     await ctx.answerCallbackQuery().catch(() => {});
     await open_member_menu(ctx);
     return;
   }
 
-  // Menu openings for top-level buttons
-  if (ns === "acct" && action === "menu") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    const kb = new InlineKeyboard()
-      .text("📊 Subscription status", "acct:status").row()
-      .text("💳 Upgrade", "acct:upgrade").row()
-      .text("◀️ Back", "ui:back");
-    await ctx.reply("👤 *Account*", { parse_mode: "Markdown", reply_markup: kb });
-    return;
-  }
-  if (ns === "safety" && action === "menu") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    const kb = new InlineKeyboard()
-      .text("🔎 Scan Contract", "safety:scan").row()
-      .text("🍯 Honeypot Check", "safety:honeypot").row()
-      .text("🚩 Report Scam", "safety:report").row()
-      .text("◀️ Back", "ui:back");
-    await ctx.reply("🛡️ *Safety tools:*", { parse_mode: "Markdown", reply_markup: kb });
-    return;
-  }
-  if (ns === "market" && action === "menu") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    const kb = new InlineKeyboard()
-      .text("📊 Quick token chart", "market:chart").row()
-      .text("📈 Price/Whale alerts", "market:alerts").row()
-      .text("◀️ Back", "ui:back");
-    await ctx.reply("📈 *Price & Alpha:*", { parse_mode: "Markdown", reply_markup: kb });
-    return;
-  }
-  if (ns === "meme" && action === "menu") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    const kb = new InlineKeyboard()
-      .text("🖼️ Create token stickers", "meme:stickers").row()
-      .text("◀️ Back", "ui:back");
-    await ctx.reply("🎭 *Meme & Stickers:*", { parse_mode: "Markdown", reply_markup: kb });
-    return;
-  }
-  if (ns === "rewards" && action === "menu") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    const kb = new InlineKeyboard()
-      .text("💸 Tips", "rewards:tip").row()
-      .text("🌧️ Airdrops", "rewards:airdrop").row()
-      .text("🎮 Games", "rewards:games").row()
-      .text("◀️ Back", "ui:back");
-    await ctx.reply("🎁 *Tips · Airdrops · Games:*", { parse_mode: "Markdown", reply_markup: kb });
-    return;
-  }
-  if (ns === "mktg" && action === "menu") {
-    await ctx.answerCallbackQuery().catch(() => {});
-    const kb = new InlineKeyboard()
-      .text("🚀 Open raid", "mktg:raid").row()
-      .text("◀️ Back", "ui:back");
-    await ctx.reply("📣 *Marketing & Raids:*", { parse_mode: "Markdown", reply_markup: kb });
-    return;
-  }
+  // Open section menus
+  if (ns === "acct" && action === "menu") return H.account.open_account(ctx);
+  if (ns === "safety" && action === "menu") return H.safety.open_menu(ctx);
+  if (ns === "market" && action === "menu") return H.market.open_menu(ctx);
+  if (ns === "meme" && action === "menu") return H.meme.open_menu(ctx);
+  if (ns === "rewards" && action === "menu") return H.rewards.open_menu(ctx);
+  if (ns === "mktg" && action === "menu") return H.mktg.open_menu(ctx);
 
-  // Generic dynamic dispatch to any handler module exported in handlers/index.ts
-  // e.g. "acct:status" -> H.account.status(ctx)
-  //      "acct:upgrade" -> H.account.upgrade(ctx), etc.
+  // Dynamic dispatch for ns:action
   const mod: any = (H as any)[ns];
   const fn = mod?.[action];
   if (typeof fn === "function") {
@@ -103,7 +49,5 @@ export async function on_callback(ctx: Context) {
     await fn(ctx);
     return;
   }
-
-  // Fallback
-  await ctx.answerCallbackQuery({ text: "Unknown", show_alert: false }).catch(() => {});
+  await ctx.answerCallbackQuery({ text: "Unknown" }).catch(() => {});
 }

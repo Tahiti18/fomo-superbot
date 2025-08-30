@@ -1,8 +1,14 @@
+// src/handlers/meme.ts
+import type { Context } from "grammy";
+import { InlineKeyboard } from "grammy";
 
-import type { Context } from 'grammy';
-export async function prompt_generate(ctx: Context){ await ctx.reply('Use /meme <prompt>'); }
-export async function generate(ctx: Context){ await ctx.reply('Generated meme (stub).'); }
-export async function start_stickerpack(ctx: Context){ await ctx.reply('Sticker pack (stub).'); }
-export async function prompt_voice(ctx: Context){ await ctx.reply('Use /voice <text>'); }
-export async function voice(ctx: Context){ await ctx.reply('Voice meme (stub).'); }
-export async function daily_hype(ctx: Context){ await ctx.reply('Hype poster (stub).'); }
+export async function open_menu(ctx: Context) {
+  const kb = new InlineKeyboard()
+    .text("🖼️ Create token stickers", "meme:stickers").row()
+    .text("◀️ Back", "ui:back");
+  await ctx.reply("🎭 *Meme & Stickers:*", { parse_mode: "Markdown", reply_markup: kb });
+}
+
+export async function stickers(ctx: Context) {
+  await ctx.reply("Send `/meme <prompt>` to create a meme (stub). Stickers feature coming.", { parse_mode: "Markdown" });
+}

@@ -5,14 +5,14 @@ import { CFG } from "./config.js";
 const app = express();
 app.use(express.json());
 
-// Healthcheck
+// Health
 app.get("/health", (_req, res) => res.status(200).send("OK"));
 
 // Telegram webhook
 app.post("/tg/webhook", async (req, res, next) => {
   try {
     const { webhook } = await import("./bot.js");
-    // @ts-ignore grammy express handler
+    // @ts-ignore
     return webhook(req, res, next);
   } catch (e) {
     console.error("Telegram webhook error:", e);
