@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS users (
+  tg_user_id BIGINT PRIMARY KEY,
+  plan TEXT NOT NULL DEFAULT 'free',
+  status TEXT NOT NULL DEFAULT 'inactive',
+  expires_at TIMESTAMPTZ NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
