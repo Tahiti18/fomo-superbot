@@ -1,32 +1,27 @@
-# FOMO Superbot (Express + grammy)
+# FOMO Superbot – Railway-ready minimal server
 
-Minimal, production-ready Telegram bot with webhook for Railway.
+This fixes Railway health checks by:
+- Binding the server to `process.env.PORT` (required by Railway)
+- Exposing a `/health` endpoint that returns `200 OK`
+- Providing a root `/` route that returns text
+- Deferring the Telegram bot load so the server boots even if `BOT_TOKEN` is missing
 
-## Env
-Copy `.env.example` to `.env` and set:
-- `BOT_TOKEN=123456:ABC...`
-- `PORT=8080` (Railway sets this automatically)
-
-## Local (optional)
+## Run locally
 ```bash
-npm ci
-cp .env.example .env  # then edit BOT_TOKEN
-npm start
+npm install
+BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN node server.js
+# open http://localhost:8080/health
 ```
+## Deploy on Railway
+Set an environment variable:
+- `BOT_TOKEN`: your Telegram bot token
 
-## Railway
-- Add a new **Service** from this repo/zip.
-- Set Variables:
-  - `BOT_TOKEN` = your bot token
-- Deploy. You should see `FOMO Superbot listening on 8080` in logs.
-
-## Telegram webhook
-Replace <TOKEN> and <APP_URL>.
-- Set webhook:
-  https://api.telegram.org/bot<TOKEN>/setWebhook?url=<APP_URL>/tg/webhook
-- Check:
-  https://api.telegram.org/bot<TOKEN>/getWebhookInfo
-- Delete (if needed):
-  https://api.telegram.org/bot<TOKEN>/deleteWebhook
-- Bot info:
-  https://api.telegram.org/bot<TOKEN>/getMe
+### Set Telegram webhook
+Replace `<TOKEN>` with your token:
+```
+https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<your-railway-domain>/tg/webhook
+```
+Check:
+```
+https://api.telegram.org/bot<TOKEN>/getWebhookInfo
+```
