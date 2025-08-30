@@ -1,63 +1,41 @@
-import { Bot, webhookCallback, InlineKeyboard } from "grammy";
-import pg from "pg";
+import { Bot, webhookCallback, Keyboard } from "grammy";
 
-const bot = new Bot(process.env.BOT_TOKEN);
-
-// Postgres client
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-
-// Menu
-function mainMenu() {
-  return new InlineKeyboard()
-    .text("🛡 Safety", "safety").row()
-    .text("📈 Price & Alpha", "alpha").row()
-    .text("🎁 Rewards", "rewards").row()
-    .text("👤 Account", "account");
+const token = process.env.BOT_TOKEN;
+if (!token) {
+  throw new Error("BOT_TOKEN is missing. Add it to your environment (.env on Railway).");
 }
 
-// Start
-bot.command("start", (ctx) =>
-  ctx.reply("Welcome to FOMO Superbot. [MENU-V3]\nUse /menu anytime.", {
-    reply_markup: mainMenu(),
-  })
-);
+// Create bot
+const bot = new Bot(token);
 
-bot.command("menu", (ctx) =>
-  ctx.reply("Open menu with the buttons below:", {
-    reply_markup: mainMenu(),
-  })
-);
+// --- UI helpers ---
+const mainKeyboard = new Keyboard()
+  .text("🛡️ Safety").text("📈 Price & Alpha").row()
+  .text("🎭 Meme & Stickers").text("🎁 Tips · Airdrops · Games").row()
+  .text("📣 Marketing & Raids").row()
+  .text("👤 Account")
+  .resized();
 
-// Callbacks
-bot.callbackQuery("safety", (ctx) =>
-  ctx.answerCallbackQuery({ text: "Safety Center coming soon" })
-);
-bot.callbackQuery("alpha", (ctx) =>
-  ctx.answerCallbackQuery({ text: "Alpha insights loading..." })
-);
-bot.callbackQuery("rewards", (ctx) =>
-  ctx.answerCallbackQuery({ text: "Rewards center coming soon" })
-);
+async function sendWelcome(ctx) {
+  await ctx.reply(
+    "Welcome to FOMO Superbot.\n\nUse /menu to open the main menu.\nUse /buy starter USDT to upgrade.\n\nPick a section:",
+    { reply_markup: mainKeyboard }
+  );
+}
 
-bot.callbackQuery("account", async (ctx) => {
-  const uid = String(ctx.from.id);
-  try {
-    const { rows } = await pool.query(
-      "SELECT plan, expires_at, status FROM subscriptions WHERE tg_user_id=$1 LIMIT 1",
-      [uid]
-    );
-    if (rows.length === 0) {
-      await ctx.reply("No subscription found. Use /buy to get started.");
-    } else {
-      const sub = rows[0];
-      await ctx.reply(
-        `Subscription: ${sub.plan}\nStatus: ${sub.status}\nExpires: ${sub.expires_at}`
-      );
-    }
-  } catch (err) {
-    console.error(err);
-    await ctx.reply("Error fetching account info.");
-  }
+// Commands
+bot.command("start", sendWelcome);
+bot.command("menu", async (ctx) => {
+  await ctx.reply("Open menu with the buttons below.", { reply_markup: mainKeyboard });
 });
 
+// Button handlers (simple echoes for now)
+bot.hears("🛡️ Safety", (ctx) => ctx.reply("Safety module coming right up."));
+bot.hears("📈 Price & Alpha", (ctx) => ctx.reply("Price & Alpha in progress."));
+bot.hears("🎭 Meme & Stickers", (ctx) => ctx.reply("Meme & Stickers area."));
+bot.hears("🎁 Tips · Airdrops · Games", (ctx) => ctx.reply("Tips · Airdrops · Games hub."));
+bot.hears("📣 Marketing & Raids", (ctx) => ctx.reply("Marketing & Raids tools."));
+bot.hears("👤 Account", (ctx) => ctx.reply("Account settings."));
+
+// Export webhook handler for Express
 export const webhook = webhookCallback(bot, "express");

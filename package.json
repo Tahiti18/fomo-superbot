@@ -2,22 +2,17 @@
   "name": "fomo-superbot",
   "version": "1.0.0",
   "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js"
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "grammy": "^1.19.1",
-    "node-fetch": "^3.3.2",
-    "pg": "^8.11.5"
-  },
-  "devDependencies": {
-    "ts-node": "^10.9.2",
-    "typescript": "^5.6.2",
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.14.2",
-    "@types/pg": "^8.11.2"
+    "grammy": "^1.24.1",
+    "dotenv": "^16.4.5"
   }
 }
