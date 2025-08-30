@@ -1,14 +1,17 @@
 {
   "name": "fomo-superbot",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node app/server.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "grammy": "^1.25.3"
+    "grammy": "^1.31.1"
   }
 }
