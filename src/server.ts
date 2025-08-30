@@ -1,14 +1,15 @@
 // src/server.ts
 import express from "express";
 import { CFG } from "./config.js";
+import { cryptopayWebhook } from "./handlers/cryptopay.js"; // ← add this
 
 const app = express();
 app.use(express.json());
 
-// Healthcheck (for Railway)
+// Healthcheck
 app.get("/health", (_req, res) => res.status(200).send("OK"));
 
-// Telegram webhook (defer-load bot to avoid startup crashes)
+// Telegram webhook
 app.post("/tg/webhook", async (req, res, next) => {
   try {
     const { webhook } = await import("./bot.js");
@@ -19,6 +20,9 @@ app.post("/tg/webhook", async (req, res, next) => {
     return res.status(500).end();
   }
 });
+
+// CryptoPay webhook  ← add this block
+app.post("/crypto/webhook", cryptopayWebhook);
 
 // Root
 app.get("/", (_req, res) => res.send("FOMO Superbot API"));
