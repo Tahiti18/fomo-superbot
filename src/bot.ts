@@ -4,33 +4,39 @@ import * as H from "./handlers/index.js";
 
 export const bot = new Bot(CFG.BOT_TOKEN);
 
-// === Commands ===
+// Register slash commands shown in Telegram menu
+await bot.api.setMyCommands([
+  { command: "start", description: "Open main menu" },
+  { command: "menu",  description: "Open main menu" },
+  { command: "status", description: "Subscription status" },
+  { command: "buy", description: "Upgrade plans" },
+  { command: "help", description: "Usage help" },
+]);
+
+// Commands
 bot.command("start", async (ctx) => {
-  await ctx.reply(
-    "Welcome to FOMO Superbot.\n\nUse /menu to open the main menu.\nUse /buy starter USDT to upgrade."
-  );
+  await ctx.reply("Welcome to FOMO Superbot. Use /menu to open the menu.");
   return H.ui.open_member_menu(ctx);
 });
 
 bot.command("menu", H.ui.open_member_menu);
-bot.command("help", async (ctx) => ctx.reply("Use /menu to open the FOMO Superbot menu."));
+bot.command("status", H.account.status);
+bot.command("help", (ctx) => ctx.reply("Use /menu to open the FOMO Superbot menu."));
 
-// Safety quick commands (stubs)
-bot.command("scan", async (ctx) => {
-  const ca = (ctx.match as string || "").trim();
-  if (!ca) return ctx.reply("Usage: /scan <contract>");
-  await ctx.reply(`Scanning: ${ca}`);
+// stubs
+bot.command("buy", (ctx) => ctx.reply("Invoice stub — use CryptoBot/Stars here."));
+bot.command("scan", (ctx) => ctx.reply("Usage: /scan <contract> (stub)"));
+bot.command("honeypot", (ctx) => ctx.reply("Usage: /honeypot <contract> (stub)"));
+bot.command("alerts", (ctx) => ctx.reply("Usage: /alerts <symbol|CA> (stub)"));
+
+// Centralized callback handling
+bot.on("callback_query:data", async (ctx) => {
+  const data = ctx.callbackQuery?.data || "";
+  if (data.startsWith("ui:")) return H.ui.on_callback(ctx);
+  if (data.startsWith("acct:")) return H.account.on_callback(ctx);
+  if (data.startsWith("safe:")) return H.safety.on_callback(ctx);
+  if (data.startsWith("mkt:")) return H.market.on_callback(ctx);
+  return ctx.answerCallbackQuery({ text: "No route" });
 });
-bot.command("honeypot", async (ctx) => {
-  const ca = (ctx.match as string || "").trim();
-  if (!ca) return ctx.reply("Usage: /honeypot <contract>");
-  await ctx.reply(`Honeypot test: ${ca}`);
-});
-
-// Payments (stub)
-bot.command("buy", H.billing.upgrade);
-
-// === Callback routing === (centralized in ui.ts)
-bot.on("callback_query:data", H.ui.on_callback);
 
 export const webhook = webhookCallback(bot, "express", { secretToken: CFG.BOT_SECRET });

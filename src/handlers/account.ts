@@ -7,26 +7,50 @@ export async function open_account(ctx: Context) {
     .text("📊 Subscription status", "acct:status").row()
     .text("💳 Upgrade", "acct:upgrade").row()
     .text("◀️ Back", "ui:back");
-  await ctx.reply("👤 Account", { reply_markup: kb });
+  await ctx.reply("👤 *Account*", { parse_mode: "Markdown", reply_markup: kb });
 }
 
 export async function status(ctx: Context) {
-  const userId = ctx.from?.id || 0;
-  let tier = "None", expires = "—", status = "inactive";
-  try {
-    const { rows } = await pool.query(
-      "SELECT plan, status, expires_at FROM subscriptions WHERE tg_user_id = $1",
-      [userId]
-    );
-    if (rows.length) {
-      tier = rows[0].plan || "None";
-      status = rows[0].status || "inactive";
-      expires = rows[0].expires_at ? new Date(rows[0].expires_at).toISOString() : "—";
+  const tgId = ctx.from?.id;
+  let lineTier = "None", lineStatus = "inactive", lineExpires = "—";
+  if (tgId) {
+    const q = "select plan, status, expires_at from subscriptions where tg_user_id = $1 order by id desc limit 1";
+    const r = await pool.query(q, [tgId]);
+    if (r.rows.length) {
+      const row = r.rows[0];
+      lineTier = row.plan || "None";
+      lineStatus = row.status || "inactive";
+      if (row.expires_at) {
+        lineExpires = new Date(row.expires_at).toISOString().replace("T"," ").replace("Z"," UTC");
+      }
     }
-  } catch (e) {
-    console.error("status query error", e);
   }
-  const txt = `📊 Subscription status\n\n• Tier: ${tier}\n• Expires: ${expires}\n• Status: ${status}\n`;
-  const kb = new InlineKeyboard().text("💳 Upgrade", "acct:upgrade").row().text("◀️ Back", "ui:back");
-  await ctx.reply(txt, { reply_markup: kb });
+
+  const txt =
+`🧾 *Subscription status*
+• Tier: *${lineTier}*
+• Status: *${lineStatus}*
+• Expires: *${lineExpires}*
+
+You’re ${lineStatus === "active" ? "premium ✅" : "not premium yet."}`;
+
+  const kb = new InlineKeyboard()
+    .text("💳 Upgrade", "acct:upgrade").row()
+    .text("◀️ Back", "ui:back");
+
+  await ctx.editMessageText(txt, { parse_mode: "Markdown", reply_markup: kb })
+    .catch(() => ctx.reply(txt, { parse_mode: "Markdown", reply_markup: kb }));
+}
+
+export async function upgrade(ctx: Context) {
+  await ctx.answerCallbackQuery().catch(() => {});
+  await ctx.reply("Opening upgrade… use /buy starter USDT (or /buy pro USDT).");
+}
+
+// Local router for account:*
+export async function on_callback(ctx: Context) {
+  const data = ctx.callbackQuery?.data || "";
+  if (data === "acct:status") return status(ctx);
+  if (data === "acct:upgrade") return upgrade(ctx);
+  return ctx.answerCallbackQuery();
 }

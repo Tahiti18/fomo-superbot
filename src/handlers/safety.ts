@@ -1,20 +1,19 @@
 import type { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
 
-export async function open_panel(ctx: Context) {
+export async function open_tools(ctx: Context) {
   const kb = new InlineKeyboard()
     .text("🔍 Scan Contract", "safe:scan").row()
-    .text("🍯 Honeypot Check", "safe:hp").row()
-    .text("🚩 Report Scam", "safe:rep").row()
+    .text("🍯 Honeypot Check", "safe:honey").row()
+    .text("🚨 Report Scam", "safe:report").row()
     .text("◀️ Back", "ui:back");
-  await ctx.reply("🛡️ Safety tools:", { reply_markup: kb });
+  await ctx.reply("🛡️ *Safety tools*", { parse_mode: "Markdown", reply_markup: kb });
 }
-export async function scan_prompt(ctx: Context) {
-  await ctx.reply("Send /scan <contract> to scan a token.");
-}
-export async function honeypot_prompt(ctx: Context) {
-  await ctx.reply("Send /honeypot <contract> to check honeypot.");
-}
-export async function report_prompt(ctx: Context) {
-  await ctx.reply("Describe the scam and we’ll log it. (stub)");
+
+export async function on_callback(ctx: Context) {
+  const data = ctx.callbackQuery?.data || "";
+  if (data === "safe:scan") return ctx.reply("Send /scan <contract> (stub).");
+  if (data === "safe:honey") return ctx.reply("Send /honeypot <contract> (stub).");
+  if (data === "safe:report") return ctx.reply("Report (stub).");
+  return ctx.answerCallbackQuery();
 }

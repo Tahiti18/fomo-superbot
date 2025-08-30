@@ -1,18 +1,21 @@
-import { Pool } from "pg";
-import dotenv from "dotenv";
-dotenv.config();
+import pkg from "pg";
+const { Pool } = pkg;
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // In Railway, SSL often needs to be allowed but not verified
-  ssl: process.env.NODE_ENV === "production" ? ({ rejectUnauthorized: false } as any) : false
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
-export type SubRow = {
-  id: number;
-  tg_user_id: string;
-  plan: string | null;
-  expires_at: string | null;
-  status: string | null;
-  created_at: string | null;
-};
+export async function ensureSchema() {
+  const sql = `
+  create table if not exists subscriptions (
+    id serial primary key,
+    tg_user_id bigint not null,
+    plan text not null,
+    status text not null default 'inactive',
+    expires_at timestamptz,
+    created_at timestamptz not null default now()
+  );
+  `;
+  await pool.query(sql);
+}
