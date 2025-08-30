@@ -2,6 +2,7 @@
 import type { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
 import * as ui from "./ui.js";
+import { pool } from "../db.js"; // assumes you have db.ts that exports a pg Pool
 
 export async function open_account(ctx: Context) {
   const kb = new InlineKeyboard()
@@ -15,22 +16,44 @@ export async function open_account(ctx: Context) {
 }
 
 export async function status(ctx: Context) {
-  const txt =
-    "📊 *Subscription status*\n\n" +
-    "• Tier: _None_\n" +
-    "• Expires: _—_\n\n" +
-    "You’re not premium yet.";
-  const kb = new InlineKeyboard()
-    .text("💳 Upgrade", "acct:upgrade").row()
-    .text("◀️ Back", "ui:back");
+  try {
+    const tgUserId = String(ctx.from?.id);
 
-  // Try to edit if this came from a button; otherwise send a new message
-  await ctx.editMessageText(txt, {
-    parse_mode: "Markdown",
-    reply_markup: kb,
-  }).catch(async () => {
-    await ctx.reply(txt, { parse_mode: "Markdown", reply_markup: kb });
-  });
+    const res = await pool.query(
+      "SELECT plan, expires_at, status FROM subscriptions WHERE tg_user_id = $1 ORDER BY created_at DESC LIMIT 1",
+      [tgUserId]
+    );
+
+    let txt: string;
+    if (res.rowCount === 0) {
+      txt =
+        "📊 *Subscription status*\n\n" +
+        "• Tier: _None_\n" +
+        "• Expires: _—_\n\n" +
+        "You’re not premium yet.";
+    } else {
+      const sub = res.rows[0];
+      txt =
+        "📊 *Subscription status*\n\n" +
+        `• Tier: _${sub.plan}_\n` +
+        `• Expires: _${sub.expires_at.toISOString().slice(0, 10)}_\n` +
+        `• Status: _${sub.status}_`;
+    }
+
+    const kb = new InlineKeyboard()
+      .text("💳 Upgrade", "acct:upgrade").row()
+      .text("◀️ Back", "ui:back");
+
+    await ctx.editMessageText(txt, {
+      parse_mode: "Markdown",
+      reply_markup: kb,
+    }).catch(async () => {
+      await ctx.reply(txt, { parse_mode: "Markdown", reply_markup: kb });
+    });
+  } catch (err) {
+    console.error("status error:", err);
+    await ctx.reply("⚠️ Error fetching subscription status.");
+  }
 }
 
 export async function upgrade(ctx: Context) {
