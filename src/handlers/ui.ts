@@ -6,25 +6,24 @@ import { InlineKeyboard } from "grammy";
 export async function on_callback(ctx: Context) {
   const data = ctx.callbackQuery?.data || "";
   try {
-    if (data === "ui:main") return open_member_menu(ctx);
-    if (data === "ui:back") return open_member_menu(ctx);
+    if (data === "ui:main" || data === "ui:back") return open_member_menu(ctx);
 
     if (data === "ui:safety") return open_safety(ctx);
     if (data === "ui:market") return open_market(ctx);
     if (data === "ui:rewards") return open_rewards(ctx);
-    if (data === "ui:account") return open_account_shortcut(ctx);
     if (data === "ui:alerts") return open_alerts(ctx);
+    if (data === "ui:account") return open_account_shortcut(ctx);
 
     await ctx.answerCallbackQuery({ text: "Unknown action" });
-  } catch (e) {
-    await ctx.answerCallbackQuery({ text: "Oops, failed", show_alert: false }).catch(() => {});
+  } catch {
+    await ctx.answerCallbackQuery({ text: "Failed", show_alert: false }).catch(() => {});
   }
 }
 
-// ===== MAIN MEMBER MENU (force this layout) =====
+// ===== MAIN MEMBER MENU (force full grid) =====
 export async function open_member_menu(ctx: Context) {
   const txt =
-    "Welcome to FOMO Superbot.\n\n" +
+    "Welcome to FOMO Superbot. [MENU-V2]\n\n" + // ← version tag so we can see it's the new file
     "Use /menu to open the main menu.\n" +
     "Use /buy starter USDT to upgrade.\n\n" +
     "Pick a section:";
@@ -35,13 +34,12 @@ export async function open_member_menu(ctx: Context) {
     .text("📣 Marketing & Raids", "mktg:open").row()
     .text("👤 Account", "ui:account");
 
-  // Prefer edit if this is a button flow; otherwise send new message
   await ctx.editMessageText(txt, { reply_markup: kb }).catch(async () => {
     await ctx.reply(txt, { reply_markup: kb });
   });
 }
 
-// ===== SECTIONS (placeholders wired to real handlers you already have) =====
+// ===== Sections =====
 export async function open_safety(ctx: Context) {
   const kb = new InlineKeyboard()
     .text("🔍 Scan Contract", "safety:scan").row()
@@ -52,9 +50,9 @@ export async function open_safety(ctx: Context) {
   await ctx.editMessageText("🛡️ *Safety tools:*", {
     parse_mode: "Markdown",
     reply_markup: kb,
-  }).catch(async () => {
-    await ctx.reply("🛡️ *Safety tools:*", { parse_mode: "Markdown", reply_markup: kb });
-  });
+  }).catch(async () =>
+    ctx.reply("🛡️ *Safety tools:*", { parse_mode: "Markdown", reply_markup: kb })
+  );
 }
 
 export async function open_market(ctx: Context) {
@@ -67,9 +65,9 @@ export async function open_market(ctx: Context) {
   await ctx.editMessageText("📈 *Price & Alpha:*", {
     parse_mode: "Markdown",
     reply_markup: kb,
-  }).catch(async () => {
-    await ctx.reply("📈 *Price & Alpha:*", { parse_mode: "Markdown", reply_markup: kb });
-  });
+  }).catch(async () =>
+    ctx.reply("📈 *Price & Alpha:*", { parse_mode: "Markdown", reply_markup: kb })
+  );
 }
 
 export async function open_rewards(ctx: Context) {
@@ -81,9 +79,9 @@ export async function open_rewards(ctx: Context) {
   await ctx.editMessageText("🎭 *Memes & Stickers:*", {
     parse_mode: "Markdown",
     reply_markup: kb,
-  }).catch(async () => {
-    await ctx.reply("🎭 *Memes & Stickers:*", { parse_mode: "Markdown", reply_markup: kb });
-  });
+  }).catch(async () =>
+    ctx.reply("🎭 *Memes & Stickers:*", { parse_mode: "Markdown", reply_markup: kb })
+  );
 }
 
 export async function open_alerts(ctx: Context) {
@@ -96,15 +94,12 @@ export async function open_alerts(ctx: Context) {
   await ctx.editMessageText("🎁 *Tips · Airdrops · Games:*", {
     parse_mode: "Markdown",
     reply_markup: kb,
-  }).catch(async () => {
-    await ctx.reply("🎁 *Tips · Airdrops · Games:*", { parse_mode: "Markdown", reply_markup: kb });
-  });
+  }).catch(async () =>
+    ctx.reply("🎁 *Tips · Airdrops · Games:*", { parse_mode: "Markdown", reply_markup: kb })
+  );
 }
 
-// Keep “Account” button in the same flow (small shortcut)
 async function open_account_shortcut(ctx: Context) {
-  // If you already have H.account.open_account wired elsewhere, you can just:
-  // return H.account.open_account(ctx)
   const kb = new InlineKeyboard()
     .text("📊 Subscription status", "acct:status").row()
     .text("💳 Upgrade", "acct:upgrade").row()
@@ -113,7 +108,7 @@ async function open_account_shortcut(ctx: Context) {
   await ctx.editMessageText("👤 *Account*", {
     parse_mode: "Markdown",
     reply_markup: kb,
-  }).catch(async () => {
-    await ctx.reply("👤 *Account*", { parse_mode: "Markdown", reply_markup: kb });
-  });
+  }).catch(async () =>
+    ctx.reply("👤 *Account*", { parse_mode: "Markdown", reply_markup: kb })
+  );
 }
