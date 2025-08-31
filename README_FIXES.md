@@ -1,24 +1,51 @@
-# FOMO Superbot – Build Fix Pack
+# Railway + TypeScript (ESM) Fix Pack
 
-This zip contains the minimal fixes to stop TypeScript build failures on Railway:
-- Proper ESM config (`tsconfig.json` with `NodeNext`)
-- Typed Express handlers (no implicit `any`)
-- Installed type packages for `express`, `pg`, `node`
-- Clean `server.ts` and `db.ts`
+Fixes these errors:
+- `ReferenceError: require is not defined`
+- `TS2307: Cannot find module 'pg'` / missing types
+- Healthcheck failures
+- Dev-only types not installed in runtime
 
-## Files in this pack
-- package.json
-- tsconfig.json
-- src/server.ts
-- src/db.ts
+## Apply
+1) Replace `Dockerfile` with the one here.
+2) Merge `package.json.MERGE_ME.json` into your existing `package.json`.
+3) Replace `tsconfig.json` with the one here (or make it equivalent).
+4) Ensure your entry is `src/server.ts`, listens on `process.env.PORT || 8080`, and serves `GET /health`.
 
-## How to use
-1. Unzip into your repo root (it will create/overwrite those files).
-2. Commit & push to GitHub.
-3. Railway will build with:
-   ```
-   npm ci
-   npm run build
-   npm start
-   ```
-4. Healthcheck: visit `/health` — you should see `OK`.
+### Example `src/server.ts`
+```ts
+import 'dotenv/config';
+import express from 'express';
+import { Bot, Context } from 'grammy';
+
+const app = express();
+app.use(express.json());
+
+app.get('/health', (_, res) => res.status(200).send('OK'));
+
+const botToken = process.env.BOT_TOKEN || '';
+if (botToken) {
+  const bot = new Bot<Context>(botToken);
+  app.post('/tg/webhook', async (req, res) => {
+    await bot.handleUpdate(req.body);
+    res.sendStatus(200);
+  });
+}
+
+const PORT = Number(process.env.PORT) || 8080;
+app.listen(PORT, () => console.log(`FOMO Superbot listening on ${PORT}`));
+```
+
+### Example `src/db.ts`
+```ts
+import { Pool } from 'pg';
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const query = (text: string, params?: any[]) => pool.query(text, params);
+```
+
+### Note on implicit any
+Add explicit types, e.g. `(ctx: Context)` for grammy handlers to silence TS7006.
+```ts
+import { Context } from 'grammy';
+bot.command('start', (ctx: Context) => ctx.reply('Hi'));
+```
