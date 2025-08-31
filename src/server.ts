@@ -1,28 +1,29 @@
-import express, { Request, Response, NextFunction } from "express";
-import dotenv from "dotenv";
-dotenv.config();
+// server.ts
+
+import express, { Request, Response } from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
 
 const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 8080;
 
-// Healthcheck for Railway
-app.get("/health", (_req: Request, res: Response) => res.status(200).send("OK"));
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Telegram webhook (defer-load grammy webhook handler)
-app.post("/tg/webhook", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { webhook } = await import("./bot.js");
-    // grammy's express handler signature: (req,res) or (req,res,next)
-    // @ts-ignore
-    return webhook(req, res, next);
-  } catch (e) {
-    console.error("Telegram webhook error:", e);
-    return res.status(500).end();
-  }
+// Health check
+app.get("/", (req: Request, res: Response) => {
+  res.json({ status: "ok", message: "Server is running ✅" });
 });
 
-// Root
-app.get("/", (_req: Request, res: Response) => res.send("FOMO Superbot API"));
+// Example Telegram webhook endpoint
+app.post("/tg/webhook", (req: Request, res: Response) => {
+  console.log("Incoming Telegram update:", req.body);
+  res.sendStatus(200);
+});
 
-const PORT = Number(process.env.PORT || 8080);
-app.listen(PORT, () => console.log(`FOMO Superbot listening on ${PORT}`));
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
