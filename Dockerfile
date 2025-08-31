@@ -1,30 +1,16 @@
-# ---- build stage ----
 FROM node:20-alpine AS build
 WORKDIR /app
-
-RUN apk add --no-cache python3 make g++
-
 COPY package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
-
-COPY . .
+COPY tsconfig.json ./
+COPY src ./src
 RUN npm run build
 
-# ---- runtime stage ----
-FROM node:20-alpine AS runtime
+FROM node:20-alpine
 WORKDIR /app
-
-COPY --from=build /app/package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
-
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/tsconfig.json ./tsconfig.json
-
 ENV NODE_ENV=production
-ENV PORT=8080
-
+COPY package*.json ./
+RUN npm ci --omit=dev || npm install --omit=dev
+COPY --from=build /app/dist ./dist
 EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=5       CMD wget -qO- http://localhost:8080/health || exit 1
-
-CMD ["node","--enable-source-maps","dist/server.js"]
+CMD ["node","dist/server.js"]

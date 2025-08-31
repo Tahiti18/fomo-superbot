@@ -1,21 +1,16 @@
-import pkg from "pg";
-const { Pool } = pkg;
+import { Pool } from 'pg';
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-});
+const connectionString = process.env.DATABASE_URL;
+export const pool = connectionString
+  ? new Pool({ connectionString, ssl: (/amazonaws|railway/).test(connectionString) ? { rejectUnauthorized: false } : undefined })
+  : undefined;
 
-export async function ensureSchema() {
-  const sql = `
-  create table if not exists subscriptions (
-    id serial primary key,
-    tg_user_id bigint not null,
-    plan text not null,
-    status text not null default 'inactive',
-    expires_at timestamptz,
-    created_at timestamptz not null default now()
-  );
-  `;
-  await pool.query(sql);
+export async function pingDb(): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    const res = await pool.query('SELECT 1 as ok');
+    return res.rows?.[0]?.ok === 1;
+  } catch {
+    return false;
+  }
 }
