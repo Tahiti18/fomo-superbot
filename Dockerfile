@@ -4,8 +4,8 @@ WORKDIR /app
 
 # Only copy manifests first for better caching
 COPY package*.json ./
-# Install ALL deps including dev (we need typescript to compile)
-RUN npm ci --omit=optional
+# Install ALL deps including dev (TypeScript, etc.)
+RUN npm install --omit=optional
 
 # Copy tsconfig and sources
 COPY tsconfig.json ./
@@ -21,7 +21,7 @@ ENV NODE_ENV=production
 
 # Install prod deps
 COPY package*.json ./
-RUN npm ci --omit=dev --omit=optional
+RUN npm install --omit=dev --omit=optional
 
 # Copy compiled output only
 COPY --from=build /app/dist ./dist
