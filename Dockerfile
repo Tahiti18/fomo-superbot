@@ -2,16 +2,13 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Only copy manifests first for better caching
+# Copy manifests and install ALL deps (dev deps needed to compile TS)
 COPY package*.json ./
-# Install ALL deps including dev (we need typescript to compile)
-RUN npm ci --omit=optional
+RUN npm install --omit=optional
 
-# Copy tsconfig and sources
+# Copy sources and tsconfig, then compile TS -> JS
 COPY tsconfig.json ./
 COPY src ./src
-
-# Compile TS -> JS
 RUN npm run build
 
 # ---- runtime stage ----
@@ -19,16 +16,16 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Install prod deps
+# Install only production deps
 COPY package*.json ./
-RUN npm ci --omit=dev --omit=optional
+RUN npm install --omit=dev --omit=optional
 
-# Copy compiled output only
+# Copy compiled output
 COPY --from=build /app/dist ./dist
 
-# Railway will inject PORT; default to 8080
+# Railway will inject PORT (fallback to 8080)
 ENV PORT=8080
 EXPOSE 8080
 
-# Try common entrypoints (server.js/index.js/app.js) to be resilient
-CMD [ "sh", "-c", "node dist/server.js || node dist/index.js || node dist/app.js" ]
+# Try common entrypoints so we don't care how you named it
+CMD ["sh","-c","node dist/server.js || node dist/index.js || node dist/app.js"]
