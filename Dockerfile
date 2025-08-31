@@ -1,14 +1,14 @@
+# Use Node.js LTS
 FROM node:20-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
-# Prefer npm ci, fall back to install if no lock exists
-RUN npm ci --omit=dev || npm install --omit=dev
+RUN npm install
 
 COPY . .
 
-ENV NODE_ENV=production
-EXPOSE 8080
+RUN npm run build
 
-CMD ["npm","start"]
+EXPOSE 8080
+CMD ["npm", "start"]
