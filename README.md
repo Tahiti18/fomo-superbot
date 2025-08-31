@@ -1,18 +1,13 @@
-# FOMO Superbot (ESM, Railway-ready)
+# FOMO Superbot (Cleaned Rebuild)
 
-## Local
-1) `cp .env.example .env` and put your bot token.
-2) `npm install`
-3) `npm start`
+- Express + grammY (Telegram) + optional Postgres
+- Webhook: /tg/webhook  (use ?secret=YOUR_SECRET if set)
+- Health:  /health
 
-## Railway
-- Set env var `BOT_TOKEN` in Railway.
-- Exposes `/health` for healthcheck and `/tg/webhook` for Telegram webhook.
+Env vars to set on Railway:
+- BOT_TOKEN
+- WEBHOOK_SECRET (optional but recommended)
+- DATABASE_URL (optional)
 
-## Telegram webhook helper
-Use the following with your token (replace <TOKEN> if not already set in .env):
-
-- Set: `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://YOUR_APP/tg/webhook`
-- Info: `https://api.telegram.org/bot<TOKEN>/getWebhookInfo`
-- Delete: `https://api.telegram.org/bot<TOKEN>/deleteWebhook`
-- Me: `https://api.telegram.org/bot<TOKEN>/getMe`
+After deploy, set the webhook:
+https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=https://<your-domain>/tg/webhook&secret_token=<WEBHOOK_SECRET>
