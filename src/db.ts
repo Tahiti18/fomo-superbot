@@ -1,26 +1,51 @@
-// src/db.ts
-// Centralized Postgres connection that is ALWAYS defined when accessed.
-// ESM-friendly, works with Node16 module + moduleResolution.
+/**
+ * src/db.ts
+ * Centralized Postgres pool for the app.
+ * Exports: `pool` and `pingDb()`
+ */
+import { Pool } from "pg";
 
-import { Pool } from 'pg'
+// Prefer DATABASE_URL (Railway / Heroku style). Fallback to discrete vars.
+const {
+  DATABASE_URL,
+  PGHOST,
+  PGPORT,
+  PGUSER,
+  PGPASSWORD,
+  PGDATABASE,
+} = process.env as Record<string, string | undefined>;
 
-let _pool: Pool | null = null
+const pool = new Pool(
+  DATABASE_URL
+    ? {
+        connectionString: DATABASE_URL,
+        // Railway PG often requires SSL. Allow env override with PGSSL=false.
+        ssl:
+          process.env.PGSSL === "false"
+            ? false
+            : { rejectUnauthorized: false },
+      }
+    : {
+        host: PGHOST || "localhost",
+        port: Number(PGPORT || 5432),
+        user: PGUSER,
+        password: PGPASSWORD,
+        database: PGDATABASE,
+        ssl:
+          process.env.PGSSL === "false"
+            ? false
+            : { rejectUnauthorized: false },
+      }
+);
 
-export function getPool(): Pool {
-  if (_pool) return _pool
-  const url = process.env.DATABASE_URL
-  if (!url) {
-    throw new Error('DATABASE_URL is not set')
+/** Simple connectivity test used by healthchecks or startup. */
+export async function pingDb(): Promise<boolean> {
+  try {
+    const res = await pool.query("SELECT 1 as ok");
+    return res.rows?.[0]?.ok === 1;
+  } catch (_err) {
+    return false;
   }
-  _pool = new Pool({
-    connectionString: url,
-    ssl: process.env.PGSSLMODE ? { rejectUnauthorized: false } : undefined
-  })
-  return _pool
 }
 
-// kept for compatibility with existing imports: server/src may import { pingDb } from '../db.js'
-export async function pingDb(): Promise<void> {
-  const pool = getPool()
-  await pool.query('SELECT 1')
-}
+export { pool };
